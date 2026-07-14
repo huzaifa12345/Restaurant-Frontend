@@ -6,6 +6,7 @@ import {
   CategoryDto,
   CategoryRequest,
   CreateOrderRequest,
+  CreateRestaurantRequest,
   CreateRoleRequest,
   CreateUserRequest,
   DashboardDto,
@@ -16,9 +17,11 @@ import {
   OrderStatus,
   OrderSummaryDto,
   OrderType,
+  PagedResultDto,
   PermissionDto,
   ReportOrderDto,
   RestaurantDto,
+  RestaurantLookupDto,
   RoleDto,
   SalesSummaryDto,
   TopSellingItemDto,
@@ -33,8 +36,24 @@ import {
 export class ApiService {
   constructor(private readonly http: HttpClient) {}
 
+  lookupRestaurants(search = '', take = 10): Observable<RestaurantLookupDto[]> {
+    let params = new HttpParams().set('take', String(take));
+    if (search.trim()) {
+      params = params.set('search', search.trim());
+    }
+    return this.http.get<RestaurantLookupDto[]>(`${environment.apiUrl}/auth/restaurants`, { params });
+  }
+
   getCurrentRestaurant(): Observable<RestaurantDto> {
     return this.http.get<RestaurantDto>(`${environment.apiUrl}/restaurants/current`);
+  }
+
+  getRestaurants(): Observable<RestaurantDto[]> {
+    return this.http.get<RestaurantDto[]>(`${environment.apiUrl}/restaurants`);
+  }
+
+  createRestaurant(body: CreateRestaurantRequest): Observable<RestaurantDto> {
+    return this.http.post<RestaurantDto>(`${environment.apiUrl}/restaurants`, body);
   }
 
   getDashboard(): Observable<DashboardDto> {
@@ -205,9 +224,13 @@ export class ApiService {
     return this.http.get<SalesSummaryDto>(`${environment.apiUrl}/reports/monthly-sales`, { params });
   }
 
-  getOrderReport(from: string, to: string): Observable<ReportOrderDto[]> {
-    const params = new HttpParams().set('from', from).set('to', to);
-    return this.http.get<ReportOrderDto[]>(`${environment.apiUrl}/reports/orders`, { params });
+  getOrderReport(from: string, to: string, page = 1, pageSize = 40): Observable<PagedResultDto<ReportOrderDto>> {
+    const params = new HttpParams()
+      .set('from', from)
+      .set('to', to)
+      .set('page', String(page))
+      .set('pageSize', String(pageSize));
+    return this.http.get<PagedResultDto<ReportOrderDto>>(`${environment.apiUrl}/reports/orders`, { params });
   }
 
   getTopSellingItems(from: string, to: string, take = 20): Observable<TopSellingItemDto[]> {
@@ -215,13 +238,35 @@ export class ApiService {
     return this.http.get<TopSellingItemDto[]>(`${environment.apiUrl}/reports/top-selling-items`, { params });
   }
 
-  getCancelledOrdersReport(from: string, to: string): Observable<ReportOrderDto[]> {
-    const params = new HttpParams().set('from', from).set('to', to);
-    return this.http.get<ReportOrderDto[]>(`${environment.apiUrl}/reports/cancelled-orders`, { params });
+  getCancelledOrdersReport(
+    from: string,
+    to: string,
+    page = 1,
+    pageSize = 40
+  ): Observable<PagedResultDto<ReportOrderDto>> {
+    const params = new HttpParams()
+      .set('from', from)
+      .set('to', to)
+      .set('page', String(page))
+      .set('pageSize', String(pageSize));
+    return this.http.get<PagedResultDto<ReportOrderDto>>(`${environment.apiUrl}/reports/cancelled-orders`, {
+      params
+    });
   }
 
-  getDeliveryOrdersReport(from: string, to: string): Observable<ReportOrderDto[]> {
-    const params = new HttpParams().set('from', from).set('to', to);
-    return this.http.get<ReportOrderDto[]>(`${environment.apiUrl}/reports/delivery-orders`, { params });
+  getDeliveryOrdersReport(
+    from: string,
+    to: string,
+    page = 1,
+    pageSize = 40
+  ): Observable<PagedResultDto<ReportOrderDto>> {
+    const params = new HttpParams()
+      .set('from', from)
+      .set('to', to)
+      .set('page', String(page))
+      .set('pageSize', String(pageSize));
+    return this.http.get<PagedResultDto<ReportOrderDto>>(`${environment.apiUrl}/reports/delivery-orders`, {
+      params
+    });
   }
 }

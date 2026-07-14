@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { permissionGuard } from './core/guards/permission.guard';
+import { platformTenantGuard } from './core/guards/platform-tenant.guard';
 import { LoginComponent } from './features/auth/login/login.component';
 import { CategoriesComponent } from './features/categories/categories.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
@@ -8,6 +9,7 @@ import { MenuItemsComponent } from './features/menu-items/menu-items.component';
 import { PosComponent } from './features/pos/pos.component';
 import { ReportsComponent } from './features/reports/reports.component';
 import { RestaurantSettingsComponent } from './features/restaurant/restaurant-settings.component';
+import { RestaurantsComponent } from './features/restaurants/restaurants.component';
 import { RolesComponent } from './features/roles/roles.component';
 import { UsersComponent } from './features/users/users.component';
 import { ShellComponent } from './layout/shell/shell.component';
@@ -45,6 +47,11 @@ export const routes: Routes = [
         component: MenuItemsComponent,
         canActivate: [permissionGuard],
         data: { permissions: ['Menu.View'] }
+      },
+      {
+        path: 'restaurants',
+        component: RestaurantsComponent,
+        canActivate: [platformTenantGuard]
       },
       {
         path: 'restaurant',

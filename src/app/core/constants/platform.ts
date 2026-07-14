@@ -1,0 +1,1 @@
+export const PLATFORM_RESTAURANT_CODE = 'DEMO001';

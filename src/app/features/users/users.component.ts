@@ -38,6 +38,7 @@ export class UsersComponent implements OnInit {
   readonly showForm = signal(false);
   readonly canCreate = computed(() => this.auth.hasPermission('Users.Create'));
   readonly canUpdate = computed(() => this.auth.hasPermission('Users.Update'));
+  readonly currentUserId = computed(() => this.auth.currentUser()?.userId ?? null);
 
   readonly displayedColumns = ['name', 'username', 'role', 'active', 'actions'];
 
@@ -51,6 +52,22 @@ export class UsersComponent implements OnInit {
     password: [''],
     isActive: [true]
   });
+
+  isSelf(user: UserDto): boolean {
+    return this.currentUserId() === user.id;
+  }
+
+  isRoleLocked(user: UserDto): boolean {
+    return !!user.isPrimaryAdmin || this.isSelf(user);
+  }
+
+  isActiveLocked(user: UserDto): boolean {
+    return !!user.isPrimaryAdmin || this.isSelf(user);
+  }
+
+  canToggleActive(user: UserDto): boolean {
+    return this.canUpdate() && !this.isActiveLocked(user);
+  }
 
   ngOnInit(): void {
     this.reload();
@@ -92,6 +109,8 @@ export class UsersComponent implements OnInit {
       isActive: true
     });
     this.form.controls.username.enable();
+    this.form.controls.roleId.enable();
+    this.form.controls.isActive.enable();
     this.form.controls.password.setValidators([Validators.required, Validators.minLength(6)]);
     this.form.controls.password.updateValueAndValidity();
   }
@@ -112,6 +131,18 @@ export class UsersComponent implements OnInit {
     this.form.controls.username.disable();
     this.form.controls.password.clearValidators();
     this.form.controls.password.updateValueAndValidity();
+
+    if (this.isRoleLocked(user)) {
+      this.form.controls.roleId.disable();
+    } else {
+      this.form.controls.roleId.enable();
+    }
+
+    if (this.isActiveLocked(user)) {
+      this.form.controls.isActive.disable();
+    } else {
+      this.form.controls.isActive.enable();
+    }
   }
 
   cancelEdit(): void {
@@ -176,7 +207,7 @@ export class UsersComponent implements OnInit {
   }
 
   toggleActive(user: UserDto): void {
-    if (!this.canUpdate()) {
+    if (!this.canToggleActive(user)) {
       return;
     }
 

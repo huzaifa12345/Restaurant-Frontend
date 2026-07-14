@@ -87,6 +87,12 @@ export class PosComponent implements OnInit {
     this.orders().filter(o => o.orderStatus === OrderStatus.Pending)
   );
 
+  readonly recentOrders = computed(() =>
+    this.orders()
+      .filter(o => o.orderStatus !== OrderStatus.Pending)
+      .slice(0, 10)
+  );
+
   readonly subtotal = computed(() =>
     this.cart().reduce((sum, line) => sum + line.unitPrice * line.quantity, 0)
   );
@@ -95,7 +101,7 @@ export class PosComponent implements OnInit {
     orderType: [OrderType.DineIn, Validators.required],
     paymentType: [PaymentType.Cash, Validators.required],
     discount: [0, [Validators.required, Validators.min(0)]],
-    tax: [0, [Validators.required, Validators.min(0)]],
+    tax: [0], // Tax UI commented out; always 0 for now
     deliveryCharges: [0, [Validators.required, Validators.min(0)]],
     remarks: ['']
   });
@@ -104,6 +110,34 @@ export class PosComponent implements OnInit {
     const value = this.billing();
     const delivery = value.orderType === OrderType.Delivery ? value.deliveryCharges : 0;
     return Math.max(0, this.subtotal() - value.discount + value.tax + delivery);
+  });
+
+  /** Cash tender suggestions: change due if customer pays with next common notes. */
+  readonly cashChangeHints = computed(() => {
+    const total = Math.round(this.grandTotal() * 100) / 100;
+    if (total <= 0) {
+      return [];
+    }
+
+    const denominations = total > 1000 ? [2000, 5000] : [500, 1000];
+    return denominations
+      .filter(payWith => payWith > total)
+      .map(payWith => ({
+        payWith,
+        remaining: Math.round((payWith - total) * 100) / 100
+      }));
+  });
+
+  readonly cashChangeHintText = computed(() => {
+    const hints = this.cashChangeHints();
+    if (!hints.length) {
+      return null;
+    }
+
+    const parts = hints.map(
+      h => `${h.remaining.toFixed(h.remaining % 1 === 0 ? 0 : 2)} if ${h.payWith}`
+    );
+    return `remaining: ${parts.join(', ')}`;
   });
 
   ngOnInit(): void {
@@ -142,7 +176,7 @@ export class PosComponent implements OnInit {
     this.billing.set({
       orderType: value.orderType,
       discount: Number(value.discount || 0),
-      tax: Number(value.tax || 0),
+      tax: 0, // Tax UI commented out; always 0 for now
       deliveryCharges: Number(value.deliveryCharges || 0)
     });
   }
@@ -265,7 +299,7 @@ export class PosComponent implements OnInit {
       paymentType: value.paymentType,
       paymentStatus: PaymentStatus.Pending,
       discount: Number(value.discount || 0),
-      tax: Number(value.tax || 0),
+      tax: 0, // Tax UI commented out; always 0 for now
       deliveryCharges: value.orderType === OrderType.Delivery ? Number(value.deliveryCharges || 0) : 0,
       remarks: value.remarks || null,
       items: this.cart().map(line => ({
@@ -310,9 +344,9 @@ export class PosComponent implements OnInit {
     this.actingOrderId.set(order.id);
     this.error.set(null);
     this.api.completeOrder(order.id).subscribe({
-      next: invoice => {
+      next: () => {
         this.actingOrderId.set(null);
-        this.invoice.set(invoice);
+        this.message.set(`Order ${order.orderNo} marked Completed.`);
         this.reloadOrders();
       },
       error: (err: { error?: { detail?: string } }) => {

@@ -28,6 +28,29 @@
   margin-bottom: 1.25rem;
 }
 
+.summary-range {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.block-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: baseline;
+  margin-bottom: 0.75rem;
+}
+
+.block-head h2 {
+  margin: 0;
+}
+
+.pager {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
 .stat {
   border: 1px solid #e5eaf2;
   border-radius: 10px;

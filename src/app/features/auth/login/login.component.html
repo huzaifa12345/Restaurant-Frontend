@@ -8,8 +8,22 @@
     <mat-card-content>
       <form [formGroup]="form" (ngSubmit)="submit()">
         <mat-form-field appearance="outline" class="full">
-          <mat-label>Restaurant Name</mat-label>
-          <input matInput formControlName="restaurantName" autocomplete="organization" />
+          <mat-label>Restaurant</mat-label>
+          <input
+            matInput
+            formControlName="restaurantName"
+            [matAutocomplete]="restaurantAuto"
+            (focus)="onRestaurantFocus()"
+            autocomplete="organization"
+            placeholder="Search restaurant"
+          />
+          <mat-autocomplete #restaurantAuto="matAutocomplete" [displayWith]="displayRestaurant">
+            @for (restaurant of restaurants(); track restaurant.name) {
+              <mat-option [value]="restaurant.name">{{ restaurant.name }}</mat-option>
+            } @empty {
+              <mat-option disabled>{{ loadingRestaurants() ? 'Loading...' : 'No restaurants found' }}</mat-option>
+            }
+          </mat-autocomplete>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full">

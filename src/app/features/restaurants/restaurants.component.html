@@ -1,0 +1,141 @@
+<section class="panel">
+  <div class="header">
+    <div>
+      <h1>Restaurants</h1>
+      <p class="muted">Create tenant restaurants (platform admin only).</p>
+    </div>
+    @if (canCreate()) {
+      <button mat-flat-button color="primary" type="button" (click)="startCreate()">Add Restaurant</button>
+    }
+  </div>
+
+  @if (error(); as err) {
+    <p class="error">{{ err }}</p>
+  }
+  @if (message(); as msg) {
+    <p class="success">{{ msg }}</p>
+  }
+
+  @if (loading()) {
+    <p class="muted">Loading...</p>
+  } @else {
+    <table mat-table [dataSource]="restaurants()" class="table">
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="code">
+        <th mat-header-cell *matHeaderCellDef>Code</th>
+        <td mat-cell *matCellDef="let row">{{ row.restaurantCode }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="city">
+        <th mat-header-cell *matHeaderCellDef>City</th>
+        <td mat-cell *matCellDef="let row">{{ row.city || '—' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="currency">
+        <th mat-header-cell *matHeaderCellDef>Currency</th>
+        <td mat-cell *matCellDef="let row">{{ row.currency }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="active">
+        <th mat-header-cell *matHeaderCellDef>Active</th>
+        <td mat-cell *matCellDef="let row">{{ row.isActive ? 'Yes' : 'No' }}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+  }
+
+  @if (showForm()) {
+    <form [formGroup]="form" (ngSubmit)="save()" class="form">
+      <h2>Create Restaurant</h2>
+      <p class="muted">Creates Admin / Manager / Cashier roles and an initial admin user.</p>
+
+      <div class="grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Restaurant Name</mat-label>
+          <input matInput formControlName="name" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Restaurant Code</mat-label>
+          <input matInput formControlName="restaurantCode" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Phone</mat-label>
+          <input matInput formControlName="phone" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="email" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Address</mat-label>
+          <input matInput formControlName="address" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>City</mat-label>
+          <input matInput formControlName="city" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Country</mat-label>
+          <input matInput formControlName="country" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Currency</mat-label>
+          <input matInput formControlName="currency" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Timezone</mat-label>
+          <input matInput formControlName="timezone" />
+        </mat-form-field>
+      </div>
+
+      <h3>Initial Admin</h3>
+      <div class="grid">
+        <mat-form-field appearance="outline">
+          <mat-label>First Name</mat-label>
+          <input matInput formControlName="adminFirstName" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Last Name</mat-label>
+          <input matInput formControlName="adminLastName" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Username</mat-label>
+          <input matInput formControlName="adminUsername" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input matInput formControlName="adminEmail" type="email" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Password</mat-label>
+          <input matInput type="password" formControlName="adminPassword" />
+        </mat-form-field>
+      </div>
+
+      <div class="actions">
+        <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+          {{ saving() ? 'Creating...' : 'Create' }}
+        </button>
+        <button mat-stroked-button type="button" (click)="cancelForm()" [disabled]="saving()">Cancel</button>
+      </div>
+    </form>
+  }
+</section>

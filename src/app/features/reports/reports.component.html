@@ -26,9 +26,10 @@
 
   @if (summary(); as s) {
     <div class="summary">
+      <p class="summary-range muted">Showing for {{ filterLabel() }} · KPI cards use Completed orders only</p>
       <div class="stat">
         <span>Net Sales</span>
-        <strong>{{ s.netSales | number: '1.2-2' }}</strong>
+        <strong>{{ s.netSales | number: '1.0-2' }}</strong>
       </div>
       <div class="stat">
         <span>Orders</span>
@@ -36,7 +37,7 @@
       </div>
       <div class="stat">
         <span>Avg Ticket</span>
-        <strong>{{ s.averageTicket | number: '1.2-2' }}</strong>
+        <strong>{{ s.averageTicket | number: '1.0-2' }}</strong>
       </div>
       <div class="stat">
         <span>Delivery</span>
@@ -48,13 +49,18 @@
       </div>
       <div class="stat">
         <span>Gross</span>
-        <strong>{{ s.grossSales | number: '1.2-2' }}</strong>
+        <strong>{{ s.grossSales | number: '1.0-2' }}</strong>
       </div>
     </div>
+  } @else if (loading()) {
+    <p class="muted">Loading summary…</p>
   }
 
   <section class="block">
-    <h2>Order Report</h2>
+    <div class="block-head">
+      <h2>Order Report</h2>
+      <span class="muted">{{ ordersTotal() }} total · page {{ ordersPage() }} / {{ ordersTotalPages() || 1 }}</span>
+    </div>
     <div class="table-wrap">
       <table>
         <thead>
@@ -76,7 +82,7 @@
               <td>{{ row.orderType }}</td>
               <td>{{ row.paymentType }}</td>
               <td>{{ row.orderStatus }}</td>
-              <td>{{ row.grandTotal | number: '1.2-2' }}</td>
+              <td>{{ row.grandTotal | number: '1.0-2' }}</td>
               <td>{{ row.itemCount }}</td>
             </tr>
           } @empty {
@@ -84,6 +90,18 @@
           }
         </tbody>
       </table>
+    </div>
+    <div class="pager">
+      <button mat-stroked-button type="button" [disabled]="ordersPage() <= 1" (click)="goOrdersPage(ordersPage() - 1)">
+        Previous
+      </button>
+      <button
+        mat-stroked-button
+        type="button"
+        [disabled]="ordersTotalPages() === 0 || ordersPage() >= ordersTotalPages()"
+        (click)="goOrdersPage(ordersPage() + 1)">
+        Next
+      </button>
     </div>
   </section>
 
@@ -103,7 +121,7 @@
             <tr>
               <td>{{ row.name }}</td>
               <td>{{ row.quantitySold }}</td>
-              <td>{{ row.salesAmount | number: '1.2-2' }}</td>
+              <td>{{ row.salesAmount | number: '1.0-2' }}</td>
             </tr>
           } @empty {
             <tr><td colspan="3" class="muted">No item sales in this range.</td></tr>
@@ -114,7 +132,10 @@
   </section>
 
   <section class="block">
-    <h2>Cancelled Orders</h2>
+    <div class="block-head">
+      <h2>Cancelled Orders</h2>
+      <span class="muted">{{ cancelledTotal() }} total · page {{ cancelledPage() }} / {{ cancelledTotalPages() || 1 }}</span>
+    </div>
     <div class="table-wrap">
       <table>
         <thead>
@@ -131,7 +152,7 @@
               <td>{{ row.orderNo }}</td>
               <td>{{ row.createdAt | date: 'medium' }}</td>
               <td>{{ row.orderType }}</td>
-              <td>{{ row.grandTotal | number: '1.2-2' }}</td>
+              <td>{{ row.grandTotal | number: '1.0-2' }}</td>
             </tr>
           } @empty {
             <tr><td colspan="4" class="muted">No cancelled orders in this range.</td></tr>
@@ -139,10 +160,29 @@
         </tbody>
       </table>
     </div>
+    <div class="pager">
+      <button
+        mat-stroked-button
+        type="button"
+        [disabled]="cancelledPage() <= 1"
+        (click)="goCancelledPage(cancelledPage() - 1)">
+        Previous
+      </button>
+      <button
+        mat-stroked-button
+        type="button"
+        [disabled]="cancelledTotalPages() === 0 || cancelledPage() >= cancelledTotalPages()"
+        (click)="goCancelledPage(cancelledPage() + 1)">
+        Next
+      </button>
+    </div>
   </section>
 
   <section class="block">
-    <h2>Delivery Orders</h2>
+    <div class="block-head">
+      <h2>Delivery Orders</h2>
+      <span class="muted">{{ deliveryTotal() }} total · page {{ deliveryPage() }} / {{ deliveryTotalPages() || 1 }}</span>
+    </div>
     <div class="table-wrap">
       <table>
         <thead>
@@ -161,13 +201,29 @@
               <td>{{ row.createdAt | date: 'medium' }}</td>
               <td>{{ row.paymentType }}</td>
               <td>{{ row.orderStatus }}</td>
-              <td>{{ row.grandTotal | number: '1.2-2' }}</td>
+              <td>{{ row.grandTotal | number: '1.0-2' }}</td>
             </tr>
           } @empty {
             <tr><td colspan="5" class="muted">No delivery orders in this range.</td></tr>
           }
         </tbody>
       </table>
+    </div>
+    <div class="pager">
+      <button
+        mat-stroked-button
+        type="button"
+        [disabled]="deliveryPage() <= 1"
+        (click)="goDeliveryPage(deliveryPage() - 1)">
+        Previous
+      </button>
+      <button
+        mat-stroked-button
+        type="button"
+        [disabled]="deliveryTotalPages() === 0 || deliveryPage() >= deliveryTotalPages()"
+        (click)="goDeliveryPage(deliveryPage() + 1)">
+        Next
+      </button>
     </div>
   </section>
 </section>

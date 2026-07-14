@@ -5,6 +5,7 @@ import { tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthResponse, LoginRequest } from '../models/api.models';
+import { PLATFORM_RESTAURANT_CODE } from '../constants/platform';
 
 const ACCESS_TOKEN_KEY = 'rms_access_token';
 const REFRESH_TOKEN_KEY = 'rms_refresh_token';
@@ -14,6 +15,7 @@ interface StoredAuthUser {
   userId: string;
   restaurantId: string;
   restaurantName: string;
+  restaurantCode: string;
   username: string;
   roleName: string;
   permissions: string[];
@@ -67,11 +69,17 @@ export class AuthService {
     return permissions.some(p => this.hasPermission(p));
   }
 
+  isPlatformRestaurant(): boolean {
+    const code = this.session()?.restaurantCode;
+    return !!code && code.toUpperCase() === PLATFORM_RESTAURANT_CODE;
+  }
+
   private persistSession(response: AuthResponse): void {
     const user: StoredAuthUser = {
       userId: response.userId,
       restaurantId: response.restaurantId,
       restaurantName: response.restaurantName,
+      restaurantCode: response.restaurantCode ?? '',
       username: response.username,
       roleName: response.roleName,
       permissions: response.permissions ?? []
@@ -91,7 +99,11 @@ export class AuthService {
     }
 
     try {
-      return JSON.parse(raw) as StoredAuthUser;
+      const parsed = JSON.parse(raw) as StoredAuthUser;
+      return {
+        ...parsed,
+        restaurantCode: parsed.restaurantCode ?? ''
+      };
     } catch {
       return null;
     }

@@ -20,6 +20,9 @@
         @if (canViewReports()) {
           <a mat-list-item routerLink="/app/reports" routerLinkActive="active">Reports</a>
         }
+        @if (canManageRestaurants()) {
+          <a mat-list-item routerLink="/app/restaurants" routerLinkActive="active">Restaurants</a>
+        }
         @if (canUpdateRestaurant()) {
           <a mat-list-item routerLink="/app/restaurant" routerLinkActive="active">Restaurant Settings</a>
         }

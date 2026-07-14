@@ -5,6 +5,7 @@ export interface AuthResponse {
   userId: string;
   restaurantId: string;
   restaurantName: string;
+  restaurantCode: string;
   username: string;
   roleName: string;
   permissions: string[];
@@ -14,6 +15,10 @@ export interface LoginRequest {
   restaurantName: string;
   username: string;
   password: string;
+}
+
+export interface RestaurantLookupDto {
+  name: string;
 }
 
 export interface RestaurantDto {
@@ -42,6 +47,7 @@ export interface UserDto {
   roleId: string;
   roleName: string;
   isActive: boolean;
+  isPrimaryAdmin?: boolean;
   createdAt: string;
 }
 
@@ -101,6 +107,23 @@ export interface UpdateRestaurantRequest {
   timezone: string;
   logo?: string | null;
   isActive: boolean;
+}
+
+export interface CreateRestaurantRequest {
+  name: string;
+  restaurantCode: string;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  city?: string | null;
+  country?: string | null;
+  currency: string;
+  timezone: string;
+  adminFirstName: string;
+  adminLastName: string;
+  adminUsername: string;
+  adminEmail: string;
+  adminPassword: string;
 }
 
 export interface CategoryDto {
@@ -303,6 +326,14 @@ export interface ReportOrderDto {
   deliveryCharges: number;
   grandTotal: number;
   itemCount: number;
+}
+
+export interface PagedResultDto<T> {
+  items: T[];
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
 }
 
 export interface TopSellingItemDto {

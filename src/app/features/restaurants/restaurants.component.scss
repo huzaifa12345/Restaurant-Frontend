@@ -7,9 +7,14 @@
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 1rem;
   margin-bottom: 1rem;
+}
+
+.muted {
+  color: #667085;
+  margin: 0.25rem 0 0;
 }
 
 .table {
@@ -38,13 +43,8 @@
   color: #b42318;
 }
 
-.muted {
-  color: #667085;
-}
-
-.hint {
-  margin: 0.5rem 0 0;
-  font-size: 0.9rem;
+.success {
+  color: #027a48;
 }
 
 @media (max-width: 800px) {

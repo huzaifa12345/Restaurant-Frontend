@@ -19,6 +19,11 @@ export class ShellComponent {
   readonly canManageUsers = computed(() => this.auth.hasPermission('Users.View'));
   readonly canManageRoles = computed(() => this.auth.hasPermission('Roles.View'));
   readonly canUpdateRestaurant = computed(() => this.auth.hasPermission('Restaurant.Update'));
+  readonly canManageRestaurants = computed(
+    () =>
+      this.auth.isPlatformRestaurant() &&
+      this.auth.hasAnyPermission(['Restaurants.View', 'Restaurants.Create'])
+  );
   readonly canViewReports = computed(() => this.auth.hasPermission('Reports.View'));
   readonly canUsePos = computed(() => this.auth.hasPermission('Orders.Create'));
   readonly canViewMenu = computed(() => this.auth.hasPermission('Menu.View'));
