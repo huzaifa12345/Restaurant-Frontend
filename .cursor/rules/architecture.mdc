@@ -1,0 +1,26 @@
+---
+description: Core architecture principles for the Restaurant SaaS (frontend view)
+alwaysApply: true
+---
+
+# Architecture (Frontend)
+
+Multi-tenant SaaS Restaurant Management System. This is the Angular 20 frontend; the backend (ASP.NET Core 10 + EF Core + PostgreSQL) lives in a separate repo.
+
+## Key principles
+- Feature-based folders; SOLID; keep features modular.
+- Build for future expansion without breaking existing features.
+- Communicate with the backend only through DTOs over the REST API.
+
+## Multi-tenancy (critical)
+- Every tenant is a restaurant; data is isolated per `RestaurantId` server-side.
+- NEVER send `RestaurantId` from the client. The backend derives it from JWT claims.
+- Store the JWT securely and attach it to every API request.
+
+## Auth & registration
+- Login form fields: Restaurant Name + Username + Password.
+- NO public sign-up screen. Restaurants and users are created only by an admin (in-app), never via a public form.
+- Roles: Admin, Manager, Cashier. Show/hide UI by permissions.
+
+## MVP scope
+Auth, Restaurant settings, Users, Roles, Categories, Menu, POS/Orders, Invoice printing, Reports, Dashboard. Everything else (Kitchen, Inventory, etc.) is future work.

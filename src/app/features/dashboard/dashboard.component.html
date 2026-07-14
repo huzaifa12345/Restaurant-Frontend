@@ -1,0 +1,104 @@
+<section class="panel">
+  <div class="header">
+    <div>
+      <h1>Dashboard</h1>
+      <p class="muted">Welcome, {{ user()?.username }} ({{ user()?.roleName }}).</p>
+    </div>
+    <div class="actions">
+      @if (canUsePos()) {
+        <a mat-stroked-button routerLink="/app/pos">Open POS</a>
+      }
+      @if (canViewReports()) {
+        <a mat-stroked-button routerLink="/app/reports">Reports</a>
+      }
+      <button mat-button type="button" (click)="reload()" [disabled]="loading()">Refresh</button>
+    </div>
+  </div>
+
+  @if (error(); as err) {
+    <p class="error">{{ err }}</p>
+  }
+
+  @if (data(); as d) {
+    <div class="kpi-grid">
+      <article class="kpi">
+        <span>Today's Sales</span>
+        <strong>{{ d.todaySales | number: '1.2-2' }}</strong>
+      </article>
+      <article class="kpi">
+        <span>Today's Orders</span>
+        <strong>{{ d.todayOrders }}</strong>
+      </article>
+      <article class="kpi">
+        <span>Monthly Sales</span>
+        <strong>{{ d.monthlySales | number: '1.2-2' }}</strong>
+      </article>
+      <article class="kpi">
+        <span>Cancelled Today</span>
+        <strong>{{ d.cancelledOrdersToday }}</strong>
+      </article>
+    </div>
+
+    <div class="split">
+      <section class="block">
+        <h2>Top Selling Items (This Month)</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Qty</th>
+                <th>Sales</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of d.topItems; track item.menuItemId) {
+                <tr>
+                  <td>{{ item.name }}</td>
+                  <td>{{ item.quantitySold }}</td>
+                  <td>{{ item.salesAmount | number: '1.2-2' }}</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="3" class="muted">No sales this month yet.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="block">
+        <h2>Recent Orders</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Order</th>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Pay</th>
+                <th>Status</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (order of d.recentOrders; track order.id) {
+                <tr>
+                  <td>{{ order.orderNo }}</td>
+                  <td>{{ order.createdAt | date: 'short' }}</td>
+                  <td>{{ orderTypeLabel(order.orderType) }}</td>
+                  <td>{{ paymentTypeLabel(order.paymentType) }}</td>
+                  <td>{{ orderStatusLabel(order.orderStatus) }}</td>
+                  <td>{{ order.grandTotal | number: '1.2-2' }}</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="6" class="muted">No orders yet.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  } @else if (loading()) {
+    <p class="muted">Loading dashboard...</p>
+  }
+</section>

@@ -1,0 +1,18 @@
+---
+description: General coding conventions for the frontend
+alwaysApply: true
+---
+
+# Coding Standards (Frontend)
+
+- Use TypeScript strictly; no implicit `any`.
+- Prefer standalone components and Angular Signals for state.
+- Keep services thin over `HttpClient`; use typed DTOs for all API I/O.
+- Handle loading and error states explicitly (visible indicators + messages).
+- Follow SOLID; keep features isolated and modular.
+- Generate production-ready code.
+- Prefer clear intent over cleverness; only comment non-obvious intent.
+
+## Naming
+- Components: `PascalCase` class, `kebab-case` files (`pos-cart.component.ts`).
+- Services: `SomethingService`; DTOs mirror backend names (`OrderDto`).

@@ -1,0 +1,32 @@
+---
+description: Angular frontend conventions and responsive requirements
+globs: "**/*.{ts,html,scss}"
+alwaysApply: false
+---
+
+# Angular Conventions
+
+Angular 19 with Signals, Angular Material, RxJS. (Docs target Angular 20; Node on this machine requires Angular 19 until Node is upgraded to 20.19+.) Feature-based modules: Authentication, Dashboard, POS, Categories, Menu, Reports, Users, Restaurant Settings.
+
+## Patterns
+- Prefer standalone components and Signals for state.
+- Never send `RestaurantId` from the client; it is derived server-side from JWT.
+- Use DTOs matching the API; keep services thin over HttpClient.
+
+## POS billing (single-form)
+- One billing screen: item cards (with image) on one side, live cart on the other, order-type + payment on the same form.
+- Tap an item card to add it; each tap adds one, repeated taps increase quantity.
+- Order type selector on the form: Dine-in / Takeaway / Delivery (delivery charges apply only for Delivery).
+- Goal: create and save an order in the fewest clicks.
+
+## Responsive (desktop + tablet first; POS not for phones)
+- Sidebar: expanded (desktop) -> collapsible (tablet) -> overlay (small).
+- POS grid: 5-6 items/row (desktop), 3-4 (tablet), large touch buttons.
+- Dashboard cards: 4/row (desktop), 2/row (tablet), 1/row (phone).
+- Tables: normal (desktop), horizontal scroll (tablet).
+
+## UI guidelines
+- Use CSS Grid/Flex; avoid fixed px, prefer `rem`; support zoom to 125%.
+- Touch targets >= 44px; no hover-only actions; visible loading + validation messages.
+- Theme: modern, clean, minimal, fast. POS = fewest clicks to create an invoice.
+- 80mm thermal invoice printing must not depend on browser scaling.

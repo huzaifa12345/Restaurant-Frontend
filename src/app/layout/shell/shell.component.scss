@@ -1,0 +1,56 @@
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f5f7fb;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.brand {
+  font-weight: 600;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.user {
+  margin-right: 0.75rem;
+  opacity: 0.9;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  flex: 1;
+  min-height: 0;
+}
+
+.sidebar {
+  background: #fff;
+  border-right: 1px solid #e5eaf2;
+}
+
+.content {
+  padding: 1.25rem;
+}
+
+.active {
+  background: #eef4ff;
+}
+
+@media (max-width: 900px) {
+  .body {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    border-right: none;
+    border-bottom: 1px solid #e5eaf2;
+  }
+}

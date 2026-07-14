@@ -1,0 +1,341 @@
+<section class="pos" [class.invoice-open]="!!invoice()">
+  <div class="pos-tabs no-print">
+    <button type="button" class="pos-tab" [class.active]="activeTab() === 'billing'" (click)="setTab('billing')">
+      Billing
+    </button>
+    <button type="button" class="pos-tab" [class.active]="activeTab() === 'orders'" (click)="setTab('orders')">
+      Orders
+      @if (pendingOrders().length) {
+        <span class="badge">{{ pendingOrders().length }}</span>
+      }
+    </button>
+  </div>
+
+  @if (error(); as err) {
+    <p class="error no-print">{{ err }}</p>
+  }
+  @if (message(); as msg) {
+    <p class="success no-print">{{ msg }}</p>
+  }
+
+  @if (activeTab() === 'billing') {
+    <div class="pos-main">
+      <aside class="catalog">
+        <div class="category-bar">
+          <button
+            type="button"
+            class="chip"
+            [class.active]="!selectedCategoryId()"
+            (click)="selectCategory('')">
+            All
+          </button>
+          @for (category of categories(); track category.id) {
+            <button
+              type="button"
+              class="chip"
+              [class.active]="selectedCategoryId() === category.id"
+              (click)="selectCategory(category.id)">
+              {{ category.name }}
+            </button>
+          }
+        </div>
+
+        <div class="cards">
+          @for (item of items(); track item.id) {
+            <button type="button" class="item-card" (click)="addItem(item)">
+              <div class="item-image">
+                @if (mediaUrl(item.image); as src) {
+                  <img [src]="src" [alt]="item.name" />
+                } @else {
+                  <div class="placeholder">No image</div>
+                }
+              </div>
+              <div class="item-meta">
+                <span class="name">{{ item.name }}</span>
+                <span class="price">{{ item.price | number: '1.2-2' }}</span>
+              </div>
+            </button>
+          } @empty {
+            <p class="muted">{{ loading() ? 'Loading menu...' : 'No active menu items.' }}</p>
+          }
+        </div>
+      </aside>
+
+      <aside class="billing no-print">
+        <header class="billing-header">
+          <h1>Cart</h1>
+          @if (cart().length) {
+            <button mat-button type="button" (click)="clearCart()">Clear</button>
+          }
+        </header>
+
+        <div class="cart-lines">
+          @for (line of cart(); track line.menuItemId) {
+            <div class="cart-line">
+              <div class="line-info">
+                <strong>{{ line.name }}</strong>
+                <span>{{ line.unitPrice | number: '1.2-2' }} × {{ line.quantity }}</span>
+              </div>
+              <div class="line-actions">
+                <button type="button" class="qty-btn" (click)="decrease(line.menuItemId)">−</button>
+                <span class="qty">{{ line.quantity }}</span>
+                <button type="button" class="qty-btn" (click)="increase(line.menuItemId)">+</button>
+                <button type="button" class="remove" (click)="remove(line.menuItemId)">Remove</button>
+              </div>
+              <div class="line-total">{{ line.unitPrice * line.quantity | number: '1.2-2' }}</div>
+            </div>
+          } @empty {
+            <p class="muted">Tap an item to add it. Tap again to increase quantity.</p>
+          }
+        </div>
+
+        <form [formGroup]="form" class="billing-form" (ngSubmit)="save()">
+          <mat-form-field appearance="outline">
+            <mat-label>Order Type</mat-label>
+            <mat-select formControlName="orderType">
+              <mat-option [value]="OrderType.DineIn">Dine In</mat-option>
+              <mat-option [value]="OrderType.Takeaway">Takeaway</mat-option>
+              <mat-option [value]="OrderType.Delivery">Delivery</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Payment</mat-label>
+            <mat-select formControlName="paymentType">
+              <mat-option [value]="PaymentType.Cash">Cash</mat-option>
+              <mat-option [value]="PaymentType.Card">Card</mat-option>
+              <mat-option [value]="PaymentType.Online">Online</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Discount</mat-label>
+            <input matInput type="number" formControlName="discount" min="0" step="0.01" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Tax</mat-label>
+            <input matInput type="number" formControlName="tax" min="0" step="0.01" />
+          </mat-form-field>
+
+          @if (form.controls.orderType.value === OrderType.Delivery) {
+            <mat-form-field appearance="outline" class="full">
+              <mat-label>Delivery Charges</mat-label>
+              <input matInput type="number" formControlName="deliveryCharges" min="0" step="0.01" />
+            </mat-form-field>
+          }
+
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>Remarks</mat-label>
+            <input matInput formControlName="remarks" />
+          </mat-form-field>
+
+          <div class="totals">
+            <div><span>Subtotal</span><strong>{{ subtotal() | number: '1.2-2' }}</strong></div>
+            <div><span>Grand Total</span><strong class="grand">{{ grandTotal() | number: '1.2-2' }}</strong></div>
+          </div>
+
+          <button
+            mat-flat-button
+            color="primary"
+            type="submit"
+            class="save-btn"
+            [disabled]="saving() || cart().length === 0">
+            {{ saving() ? 'Saving...' : 'Save Order' }}
+          </button>
+        </form>
+      </aside>
+    </div>
+  } @else {
+    <div class="orders-panel no-print">
+      <div class="orders-header">
+        <div>
+          <h2>Open Orders</h2>
+          <p class="muted">Pending orders wait here. Done marks Completed and opens the receipt.</p>
+        </div>
+        <button mat-stroked-button type="button" (click)="reloadOrders()">Refresh</button>
+      </div>
+
+      <div class="orders-list">
+        @for (order of pendingOrders(); track order.id) {
+          <article class="order-card">
+            <div class="order-main">
+              <strong>{{ order.orderNo }}</strong>
+              <span>{{ order.createdAt | date: 'short' }}</span>
+              <span>{{ orderTypeLabel(order.orderType) }} · {{ paymentTypeLabel(order.paymentType) }}</span>
+              <span class="order-total">{{ order.grandTotal | number: '1.2-2' }} ({{ order.itemCount }} items)</span>
+            </div>
+            <div class="order-items">
+              @for (line of order.items ?? []; track line.name + line.quantity) {
+                <span class="order-item-chip">{{ line.name }} × {{ line.quantity }}</span>
+              } @empty {
+                <span class="muted">No items</span>
+              }
+            </div>
+            <div class="order-actions">
+              @if (canComplete()) {
+                <button
+                  mat-flat-button
+                  color="primary"
+                  type="button"
+                  [disabled]="actingOrderId() === order.id"
+                  (click)="markDone(order)">
+                  Done
+                </button>
+              }
+              <button
+                mat-stroked-button
+                type="button"
+                [disabled]="actingOrderId() === order.id"
+                (click)="viewReceipt(order)">
+                Receipt
+              </button>
+              @if (canCancel()) {
+                <button
+                  mat-stroked-button
+                  color="warn"
+                  type="button"
+                  [disabled]="actingOrderId() === order.id"
+                  (click)="markCancel(order)">
+                  Cancel
+                </button>
+              }
+            </div>
+          </article>
+        } @empty {
+          <p class="muted">No pending orders.</p>
+        }
+      </div>
+
+      <div class="orders-header secondary">
+        <h2>Recent Orders</h2>
+      </div>
+      <div class="orders-list">
+        @for (order of orders(); track order.id) {
+          @if (order.orderStatus !== OrderStatus.Pending) {
+            <article class="order-card compact">
+              <div class="order-main">
+                <strong>{{ order.orderNo }}</strong>
+                <span>{{ orderStatusLabel(order.orderStatus) }} · {{ order.createdAt | date: 'short' }}</span>
+                <span class="order-total">{{ order.grandTotal | number: '1.2-2' }}</span>
+              </div>
+              <div class="order-actions">
+                @if (order.orderStatus === OrderStatus.Completed) {
+                  <button mat-button type="button" (click)="viewReceipt(order)">Receipt</button>
+                }
+              </div>
+            </article>
+          }
+        }
+      </div>
+    </div>
+  }
+
+  @if (invoice(); as inv) {
+    <div class="invoice-overlay">
+      <div class="invoice-panel">
+        <div class="invoice-actions no-print">
+          <button type="button" class="close-btn" aria-label="Close receipt" (click)="closeInvoice()">×</button>
+          <button mat-stroked-button type="button" (click)="closeInvoice()">Close</button>
+          <button mat-flat-button color="primary" type="button" (click)="printInvoice()">Print Receipt</button>
+        </div>
+        <p class="print-hint no-print">
+          Print tip: choose your 80mm thermal printer, set paper to 80mm / roll, margins None, scale 100% (do not “Fit to page”).
+        </p>
+
+        <div class="receipt-print-root receipt-stack">
+          <article class="receipt receipt-copy">
+            <div class="receipt-copy-label">Customer Copy</div>
+            <header class="receipt-header">
+              <h1>{{ inv.restaurant.name }}</h1>
+              @if (inv.restaurant.address) {
+                <p>{{ inv.restaurant.address }}</p>
+              }
+              @if (inv.restaurant.city || inv.restaurant.country) {
+                <p>{{ inv.restaurant.city }}{{ inv.restaurant.city && inv.restaurant.country ? ', ' : '' }}{{ inv.restaurant.country }}</p>
+              }
+              @if (inv.restaurant.phone) {
+                <p>Tel: {{ inv.restaurant.phone }}</p>
+              }
+            </header>
+            <hr class="receipt-divider" />
+            <div class="receipt-meta">
+              <div><span>Order</span><span>{{ inv.orderNo }}</span></div>
+              <div><span>Date</span><span>{{ inv.createdAt | date: 'yyyy-MM-dd HH:mm' }}</span></div>
+              <div><span>Type</span><span>{{ orderTypeLabel(inv.orderType) }}</span></div>
+              <div><span>Pay</span><span>{{ paymentTypeLabel(inv.paymentType) }}</span></div>
+            </div>
+            <hr class="receipt-divider" />
+            <div class="receipt-items">
+              @for (item of inv.items; track $index) {
+                <div>
+                  <div class="receipt-item-name">{{ item.name }}</div>
+                  <div class="receipt-line">
+                    <span>{{ item.quantity }} x {{ item.unitPrice | number: '1.2-2' }}</span>
+                    <span>{{ item.total | number: '1.2-2' }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+            <hr class="receipt-divider" />
+            <div class="receipt-totals">
+              <div><span>Subtotal</span><span>{{ inv.subtotal | number: '1.2-2' }}</span></div>
+              <div><span>Discount</span><span>{{ inv.discount | number: '1.2-2' }}</span></div>
+              <div><span>Tax</span><span>{{ inv.tax | number: '1.2-2' }}</span></div>
+              @if (inv.deliveryCharges > 0) {
+                <div><span>Delivery</span><span>{{ inv.deliveryCharges | number: '1.2-2' }}</span></div>
+              }
+              <div class="grand-row"><span>TOTAL ({{ inv.currency }})</span><span>{{ inv.grandTotal | number: '1.2-2' }}</span></div>
+            </div>
+            @if (inv.remarks) {
+              <p class="receipt-footer">{{ inv.remarks }}</p>
+            }
+            <p class="receipt-footer">Thank you</p>
+          </article>
+
+          <hr class="screen-only-break" />
+
+          <article class="receipt receipt-copy">
+            <div class="receipt-copy-label">Restaurant Copy</div>
+            <header class="receipt-header">
+              <h1>{{ inv.restaurant.name }}</h1>
+              <p>Kitchen / Accounts</p>
+            </header>
+            <hr class="receipt-divider" />
+            <div class="receipt-meta">
+              <div><span>Order</span><span>{{ inv.orderNo }}</span></div>
+              <div><span>Date</span><span>{{ inv.createdAt | date: 'yyyy-MM-dd HH:mm' }}</span></div>
+              <div><span>Type</span><span>{{ orderTypeLabel(inv.orderType) }}</span></div>
+              <div><span>Pay</span><span>{{ paymentTypeLabel(inv.paymentType) }}</span></div>
+            </div>
+            <hr class="receipt-divider" />
+            <div class="receipt-items">
+              @for (item of inv.items; track $index) {
+                <div>
+                  <div class="receipt-item-name">{{ item.name }}</div>
+                  <div class="receipt-line">
+                    <span>{{ item.quantity }} x {{ item.unitPrice | number: '1.2-2' }}</span>
+                    <span>{{ item.total | number: '1.2-2' }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+            <hr class="receipt-divider" />
+            <div class="receipt-totals">
+              <div><span>Subtotal</span><span>{{ inv.subtotal | number: '1.2-2' }}</span></div>
+              <div><span>Discount</span><span>{{ inv.discount | number: '1.2-2' }}</span></div>
+              <div><span>Tax</span><span>{{ inv.tax | number: '1.2-2' }}</span></div>
+              @if (inv.deliveryCharges > 0) {
+                <div><span>Delivery</span><span>{{ inv.deliveryCharges | number: '1.2-2' }}</span></div>
+              }
+              <div class="grand-row"><span>TOTAL ({{ inv.currency }})</span><span>{{ inv.grandTotal | number: '1.2-2' }}</span></div>
+            </div>
+            @if (inv.remarks) {
+              <p class="receipt-footer">Notes: {{ inv.remarks }}</p>
+            }
+          </article>
+        </div>
+      </div>
+    </div>
+  }
+</section>

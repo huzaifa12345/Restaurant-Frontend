@@ -1,0 +1,62 @@
+<section class="panel">
+  <h1>Restaurant Settings</h1>
+  <p class="muted">Code: {{ restaurantCode }}</p>
+
+  <form [formGroup]="form" (ngSubmit)="save()" class="grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Phone</mat-label>
+      <input matInput formControlName="phone" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Email</mat-label>
+      <input matInput formControlName="email" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Address</mat-label>
+      <input matInput formControlName="address" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>City</mat-label>
+      <input matInput formControlName="city" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Country</mat-label>
+      <input matInput formControlName="country" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Currency</mat-label>
+      <input matInput formControlName="currency" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Timezone</mat-label>
+      <input matInput formControlName="timezone" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Logo URL</mat-label>
+      <input matInput formControlName="logo" />
+    </mat-form-field>
+
+    <mat-slide-toggle formControlName="isActive">Active</mat-slide-toggle>
+
+    @if (message(); as msg) {
+      <p class="ok full">{{ msg }}</p>
+    }
+    @if (error(); as err) {
+      <p class="error full">{{ err }}</p>
+    }
+
+    <button mat-flat-button color="primary" type="submit" [disabled]="loading()">Save</button>
+  </form>
+</section>

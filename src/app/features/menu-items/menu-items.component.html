@@ -1,0 +1,126 @@
+<section class="panel">
+  <div class="header">
+    <div>
+      <h1>Menu Items</h1>
+      <p class="muted">Card layout matches POS item selection.</p>
+    </div>
+    @if (canCreate()) {
+      <button mat-flat-button color="primary" type="button" (click)="startCreate()">Add Item</button>
+    }
+  </div>
+
+  <div class="filters">
+    <mat-form-field appearance="outline">
+      <mat-label>Filter by category</mat-label>
+      <mat-select [value]="filterCategoryId()" (selectionChange)="onFilterChange($event.value)">
+        <mat-option value="">All</mat-option>
+        @for (category of categories(); track category.id) {
+          <mat-option [value]="category.id">{{ category.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  @if (error(); as err) {
+    <p class="error">{{ err }}</p>
+  }
+
+  <div class="cards">
+    @for (item of items(); track item.id) {
+      <article class="card">
+        <div class="card-image">
+          @if (mediaUrl(item.image); as src) {
+            <img [src]="src" [alt]="item.name" />
+          } @else {
+            <div class="placeholder">No image</div>
+          }
+        </div>
+        <div class="card-body">
+          <h3>{{ item.name }}</h3>
+          <p class="meta">{{ item.categoryName }}</p>
+          <p class="price">{{ item.price | number: '1.2-2' }}</p>
+          <p class="status">{{ item.isActive ? 'Active' : 'Inactive' }}</p>
+          <div class="card-actions">
+            @if (canUpdate()) {
+              <button mat-button type="button" (click)="startEdit(item)">Edit</button>
+            }
+            @if (canDelete()) {
+              <button mat-button type="button" (click)="remove(item)">Delete</button>
+            }
+          </div>
+        </div>
+      </article>
+    } @empty {
+      <p class="muted">No menu items yet. Create a category first, then add burgers/fries/etc.</p>
+    }
+  </div>
+
+  @if (showForm()) {
+    <form [formGroup]="form" (ngSubmit)="save()" class="form">
+      <h2>{{ editingId() ? 'Edit Menu Item' : 'Create Menu Item' }}</h2>
+
+      <div class="grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Category</mat-label>
+          <mat-select formControlName="categoryId">
+            @for (category of categories(); track category.id) {
+              <mat-option [value]="category.id">{{ category.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Price</mat-label>
+          <input matInput type="number" formControlName="price" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Cost Price</mat-label>
+          <input matInput type="number" formControlName="costPrice" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>SKU</mat-label>
+          <input matInput formControlName="sku" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Barcode</mat-label>
+          <input matInput formControlName="barcode" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Description</mat-label>
+          <input matInput formControlName="description" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Sort Order</mat-label>
+          <input matInput type="number" formControlName="sortOrder" />
+        </mat-form-field>
+
+        <mat-slide-toggle formControlName="isActive">Active</mat-slide-toggle>
+
+        <div class="upload full">
+          <input type="file" accept="image/*" (change)="onFileSelected($event)" />
+          @if (uploading()) {
+            <span>Uploading...</span>
+          }
+          @if (imagePreview(); as preview) {
+            <img [src]="preview" alt="Preview" class="preview" />
+          }
+        </div>
+      </div>
+
+      <div class="actions">
+        <button mat-stroked-button type="button" (click)="cancelEdit()">Cancel</button>
+        <button mat-flat-button color="primary" type="submit" [disabled]="loading() || uploading()">Save</button>
+      </div>
+    </form>
+  }
+</section>

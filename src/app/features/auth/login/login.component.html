@@ -1,0 +1,35 @@
+<div class="login-page">
+  <mat-card class="login-card">
+    <mat-card-header>
+      <mat-card-title>Restaurant Login</mat-card-title>
+      <mat-card-subtitle>No public registration. Ask your admin for access.</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Restaurant Name</mat-label>
+          <input matInput formControlName="restaurantName" autocomplete="organization" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Username</mat-label>
+          <input matInput formControlName="username" autocomplete="username" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Password</mat-label>
+          <input matInput type="password" formControlName="password" autocomplete="current-password" />
+        </mat-form-field>
+
+        @if (errorMessage(); as message) {
+          <p class="error">{{ message }}</p>
+        }
+
+        <button mat-flat-button color="primary" class="full" [disabled]="loading()">
+          {{ loading() ? 'Signing in...' : 'Sign in' }}
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

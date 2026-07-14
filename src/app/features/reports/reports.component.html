@@ -1,0 +1,173 @@
+<section class="panel">
+  <div class="header">
+    <div>
+      <h1>Reports</h1>
+      <p class="muted">Sales, orders, top items, cancelled and delivery for the selected dates.</p>
+    </div>
+  </div>
+
+  <form class="filters" [formGroup]="filters" (ngSubmit)="load()">
+    <mat-form-field appearance="outline">
+      <mat-label>From</mat-label>
+      <input matInput type="date" formControlName="from" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>To</mat-label>
+      <input matInput type="date" formControlName="to" />
+    </mat-form-field>
+    <button mat-flat-button color="primary" type="submit" [disabled]="loading()">Apply</button>
+    <button mat-stroked-button type="button" (click)="setToday()">Today</button>
+    <button mat-stroked-button type="button" (click)="setThisMonth()">This Month</button>
+  </form>
+
+  @if (error(); as err) {
+    <p class="error">{{ err }}</p>
+  }
+
+  @if (summary(); as s) {
+    <div class="summary">
+      <div class="stat">
+        <span>Net Sales</span>
+        <strong>{{ s.netSales | number: '1.2-2' }}</strong>
+      </div>
+      <div class="stat">
+        <span>Orders</span>
+        <strong>{{ s.orderCount }}</strong>
+      </div>
+      <div class="stat">
+        <span>Avg Ticket</span>
+        <strong>{{ s.averageTicket | number: '1.2-2' }}</strong>
+      </div>
+      <div class="stat">
+        <span>Delivery</span>
+        <strong>{{ s.deliveryCount }}</strong>
+      </div>
+      <div class="stat">
+        <span>Cancelled</span>
+        <strong>{{ s.cancelledCount }}</strong>
+      </div>
+      <div class="stat">
+        <span>Gross</span>
+        <strong>{{ s.grossSales | number: '1.2-2' }}</strong>
+      </div>
+    </div>
+  }
+
+  <section class="block">
+    <h2>Order Report</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Order No</th>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th>Total</th>
+            <th>Items</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of orders(); track row.id) {
+            <tr>
+              <td>{{ row.orderNo }}</td>
+              <td>{{ row.createdAt | date: 'medium' }}</td>
+              <td>{{ row.orderType }}</td>
+              <td>{{ row.paymentType }}</td>
+              <td>{{ row.orderStatus }}</td>
+              <td>{{ row.grandTotal | number: '1.2-2' }}</td>
+              <td>{{ row.itemCount }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="7" class="muted">No orders in this range.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Top Selling Items</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Qty Sold</th>
+            <th>Sales</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of topItems(); track row.menuItemId) {
+            <tr>
+              <td>{{ row.name }}</td>
+              <td>{{ row.quantitySold }}</td>
+              <td>{{ row.salesAmount | number: '1.2-2' }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="3" class="muted">No item sales in this range.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Cancelled Orders</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Order No</th>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of cancelled(); track row.id) {
+            <tr>
+              <td>{{ row.orderNo }}</td>
+              <td>{{ row.createdAt | date: 'medium' }}</td>
+              <td>{{ row.orderType }}</td>
+              <td>{{ row.grandTotal | number: '1.2-2' }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="4" class="muted">No cancelled orders in this range.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>Delivery Orders</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Order No</th>
+            <th>Date</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of delivery(); track row.id) {
+            <tr>
+              <td>{{ row.orderNo }}</td>
+              <td>{{ row.createdAt | date: 'medium' }}</td>
+              <td>{{ row.paymentType }}</td>
+              <td>{{ row.orderStatus }}</td>
+              <td>{{ row.grandTotal | number: '1.2-2' }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5" class="muted">No delivery orders in this range.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>
