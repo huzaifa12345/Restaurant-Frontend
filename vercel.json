@@ -1,0 +1,6 @@
+{
+  "outputDirectory": "dist/restaurant-web/browser",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
