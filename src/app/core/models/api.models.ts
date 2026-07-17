@@ -170,7 +170,9 @@ export interface MenuItemRequest {
 }
 
 export interface UploadImageResponse {
+  /** Durable storage key to save on category/menu (Cloudinary public_id or /uploads/...). */
   path: string;
+  /** Browser-ready URL (signed Cloudinary or local path). */
   url: string;
 }
 

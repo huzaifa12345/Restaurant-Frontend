@@ -146,7 +146,7 @@ export class MenuItemsComponent implements OnInit {
     this.api.uploadImage(file).subscribe({
       next: result => {
         this.form.patchValue({ image: result.path });
-        this.imagePreview.set(this.mediaUrl(result.path));
+        this.imagePreview.set(result.url || this.mediaUrl(result.path));
         this.uploading.set(false);
       },
       error: (err: { error?: { detail?: string } }) => {
