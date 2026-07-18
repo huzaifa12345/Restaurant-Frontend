@@ -30,6 +30,23 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     visibility: visible !important;
   }
 
+  /* Crisp, dark output for thermal printers (avoid faint/grey anti-aliased text). */
+  .receipt-print-root,
+  .receipt-print-root * {
+    color: #000 !important;
+    font-weight: 600 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    text-shadow: none !important;
+  }
+
+  .receipt-print-root .receipt-item-name,
+  .receipt-print-root .receipt-header h1,
+  .receipt-print-root .grand-row,
+  .receipt-print-root .receipt-copy-label {
+    font-weight: 700 !important;
+  }
+
   .invoice-overlay,
   .invoice-panel {
     position: static !important;

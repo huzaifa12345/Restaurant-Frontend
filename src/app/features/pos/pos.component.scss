@@ -425,13 +425,14 @@
 }
 
 .receipt {
-  width: 80mm;
+  width: 72mm;
   max-width: 100%;
   margin: 0 auto;
-  color: #111;
+  color: #000;
   font-family: "Courier New", Courier, monospace;
-  font-size: 12px;
-  line-height: 1.35;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
 }
 
 .receipt-copy-label {
@@ -459,7 +460,7 @@
 
 .receipt-divider {
   border: none;
-  border-top: 1px dashed #111;
+  border-top: 1px dashed #000;
   margin: 0.45rem 0;
 }
 
