@@ -43,6 +43,10 @@
         <button mat-flat-button color="primary" class="full" [disabled]="loading()">
           {{ loading() ? 'Signing in...' : 'Sign in' }}
         </button>
+
+        <p class="change-password-link">
+          <a routerLink="/change-password">Change Password</a>
+        </p>
       </form>
     </mat-card-content>
   </mat-card>

@@ -21,6 +21,18 @@ export interface RestaurantLookupDto {
   name: string;
 }
 
+export interface ChangePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordPublicRequest {
+  restaurantName: string;
+  username: string;
+  oldPassword: string;
+  newPassword: string;
+}
+
 export interface RestaurantDto {
   id: string;
   name: string;
@@ -46,9 +58,18 @@ export interface UserDto {
   phone?: string | null;
   roleId: string;
   roleName: string;
+  restaurantId: string;
+  restaurantName: string;
   isActive: boolean;
   isPrimaryAdmin?: boolean;
   createdAt: string;
+}
+
+export interface UserQuery {
+  page?: number;
+  pageSize?: number;
+  username?: string | null;
+  restaurantId?: string | null;
 }
 
 export interface RoleDto {

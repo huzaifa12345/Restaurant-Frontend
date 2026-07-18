@@ -29,7 +29,8 @@ import {
   UpdateRoleRequest,
   UpdateUserRequest,
   UploadImageResponse,
-  UserDto
+  UserDto,
+  UserQuery
 } from '../models/api.models';
 
 @Injectable({ providedIn: 'root' })
@@ -64,8 +65,17 @@ export class ApiService {
     return this.http.put<RestaurantDto>(`${environment.apiUrl}/restaurants/current`, body);
   }
 
-  getUsers(): Observable<UserDto[]> {
-    return this.http.get<UserDto[]>(`${environment.apiUrl}/users`);
+  getUsers(query: UserQuery = {}): Observable<PagedResultDto<UserDto>> {
+    let params = new HttpParams()
+      .set('page', String(query.page ?? 1))
+      .set('pageSize', String(query.pageSize ?? 10));
+    if (query.username?.trim()) {
+      params = params.set('username', query.username.trim());
+    }
+    if (query.restaurantId) {
+      params = params.set('restaurantId', query.restaurantId);
+    }
+    return this.http.get<PagedResultDto<UserDto>>(`${environment.apiUrl}/users`, { params });
   }
 
   getUser(id: string): Observable<UserDto> {
@@ -84,8 +94,12 @@ export class ApiService {
     return this.http.patch<UserDto>(`${environment.apiUrl}/users/${id}/status`, { isActive });
   }
 
-  getRoles(): Observable<RoleDto[]> {
-    return this.http.get<RoleDto[]>(`${environment.apiUrl}/roles`);
+  getRoles(restaurantId?: string | null): Observable<RoleDto[]> {
+    let params = new HttpParams();
+    if (restaurantId) {
+      params = params.set('restaurantId', restaurantId);
+    }
+    return this.http.get<RoleDto[]>(`${environment.apiUrl}/roles`, { params });
   }
 
   getRole(id: string): Observable<RoleDto> {

@@ -4,7 +4,12 @@ import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuthResponse, LoginRequest } from '../models/api.models';
+import {
+  AuthResponse,
+  ChangePasswordPublicRequest,
+  ChangePasswordRequest,
+  LoginRequest
+} from '../models/api.models';
 import { PLATFORM_RESTAURANT_CODE } from '../constants/platform';
 
 const ACCESS_TOKEN_KEY = 'rms_access_token';
@@ -39,6 +44,14 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${environment.apiUrl}/auth/login`, request).pipe(
       tap(response => this.persistSession(response))
     );
+  }
+
+  changePassword(request: ChangePasswordRequest): Observable<void> {
+    return this.http.post<void>(`${environment.apiUrl}/auth/change-password`, request);
+  }
+
+  changePasswordPublic(request: ChangePasswordPublicRequest): Observable<void> {
+    return this.http.post<void>(`${environment.apiUrl}/auth/change-password-public`, request);
   }
 
   refreshToken(): Observable<AuthResponse> {

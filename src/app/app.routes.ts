@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { permissionGuard } from './core/guards/permission.guard';
 import { platformTenantGuard } from './core/guards/platform-tenant.guard';
+import { ChangePasswordComponent } from './features/auth/change-password/change-password.component';
 import { LoginComponent } from './features/auth/login/login.component';
 import { CategoriesComponent } from './features/categories/categories.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
@@ -17,6 +18,7 @@ import { ShellComponent } from './layout/shell/shell.component';
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'app/dashboard' },
   { path: 'login', component: LoginComponent },
+  { path: 'change-password', component: ChangePasswordComponent, data: { mode: 'public' } },
   {
     path: 'app',
     component: ShellComponent,
@@ -24,6 +26,7 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       { path: 'dashboard', component: DashboardComponent, canActivate: [permissionGuard], data: { permissions: ['Dashboard.View'] } },
+      { path: 'change-password', component: ChangePasswordComponent, data: { mode: 'auth' } },
       {
         path: 'pos',
         component: PosComponent,

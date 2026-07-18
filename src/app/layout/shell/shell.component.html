@@ -3,6 +3,7 @@
     <span class="brand">{{ user()?.restaurantName || 'Restaurant' }}</span>
     <span class="spacer"></span>
     <span class="user">{{ user()?.username }} ({{ user()?.roleName }})</span>
+    <a mat-button routerLink="/app/change-password" routerLinkActive="active">Change Password</a>
     <button mat-button type="button" (click)="logout()">Logout</button>
   </mat-toolbar>
 

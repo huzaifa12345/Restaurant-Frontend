@@ -22,3 +22,18 @@
   color: #b42318;
   margin: 0 0 0.75rem;
 }
+
+.change-password-link {
+  text-align: center;
+  margin: 0.75rem 0 0;
+
+  a {
+    color: #1a73e8;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+}
