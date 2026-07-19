@@ -382,11 +382,11 @@
 }
 
 .invoice-panel {
-  width: min(420px, 100%);
+  width: min(360px, 100%);
   background: #fff;
   border-radius: 12px;
-  padding: 1rem;
-  max-height: 90vh;
+  padding: 8px 25px;
+  max-height: 92vh;
   overflow: auto;
   position: relative;
 }
@@ -413,21 +413,15 @@
   color: #344054;
 }
 
-.print-hint {
-  margin: 0 0 0.75rem;
-  color: #667085;
-  font-size: 0.85rem;
-}
-
 .receipt-stack {
   display: grid;
   gap: 1rem;
 }
 
 .receipt {
-  width: 72mm;
+  width: 100%;
   max-width: 100%;
-  margin: 0 auto;
+  margin: 0;
   color: #000;
   font-family: "Courier New", Courier, monospace;
   font-size: 13px;

@@ -381,6 +381,11 @@ export class PosComponent implements OnInit {
   }
 
   printInvoice(): void {
+    const cleanup = () => {
+      window.removeEventListener('afterprint', cleanup);
+      this.invoice.set(null);
+    };
+    window.addEventListener('afterprint', cleanup);
     window.print();
   }
 
