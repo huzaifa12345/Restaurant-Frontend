@@ -1,7 +1,7 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -41,13 +41,15 @@ export class CategoriesComponent implements OnInit {
   readonly uploading = signal(false);
   readonly error = signal<string | null>(null);
   readonly editingId = signal<string | null>(null);
-  readonly showForm = signal(false);
   readonly imagePreview = signal<string | null>(null);
 
   readonly canCreate = computed(() => this.auth.hasPermission('Menu.Create'));
   readonly canUpdate = computed(() => this.auth.hasPermission('Menu.Update'));
   readonly canDelete = computed(() => this.auth.hasPermission('Menu.Delete'));
   readonly displayedColumns = ['image', 'name', 'order', 'active', 'actions'];
+
+  @ViewChild('categoryFormTemplate') private readonly categoryFormTemplate?: TemplateRef<any>;
+  private activeDialogRef: MatDialogRef<any> | null = null;
 
   readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
@@ -83,14 +85,13 @@ export class CategoriesComponent implements OnInit {
 
   startCreate(): void {
     this.editingId.set(null);
-    this.showForm.set(true);
     this.form.reset({ name: '', displayOrder: 0, image: '', isActive: true });
     this.imagePreview.set(null);
+    this.openFormDialog();
   }
 
   startEdit(category: CategoryDto): void {
     this.editingId.set(category.id);
-    this.showForm.set(true);
     this.form.reset({
       name: category.name,
       displayOrder: category.displayOrder,
@@ -98,13 +99,12 @@ export class CategoriesComponent implements OnInit {
       isActive: category.isActive
     });
     this.imagePreview.set(this.mediaUrl(category.image));
+    this.openFormDialog();
   }
 
   cancelEdit(): void {
-    this.editingId.set(null);
-    this.showForm.set(false);
-    this.form.reset();
-    this.imagePreview.set(null);
+    this.activeDialogRef?.close();
+    this.resetDialogState();
   }
 
   onFileSelected(event: Event): void {
@@ -165,6 +165,31 @@ export class CategoriesComponent implements OnInit {
         this.notification.error(message);
       }
     });
+  }
+
+  private openFormDialog(): void {
+    if (!this.categoryFormTemplate) {
+      return;
+    }
+
+    this.activeDialogRef?.close();
+    this.activeDialogRef = this.dialog.open(this.categoryFormTemplate, {
+      width: '640px',
+      autoFocus: false
+    });
+
+    this.activeDialogRef.afterClosed().subscribe(() => {
+      if (this.activeDialogRef) {
+        this.activeDialogRef = null;
+      }
+      this.resetDialogState();
+    });
+  }
+
+  private resetDialogState(): void {
+    this.editingId.set(null);
+    this.form.reset();
+    this.imagePreview.set(null);
   }
 
   remove(category: CategoryDto): void {

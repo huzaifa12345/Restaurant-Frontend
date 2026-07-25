@@ -49,38 +49,38 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
   </table>
 
-  @if (showForm()) {
-    <form [formGroup]="form" (ngSubmit)="save()" class="form">
-      <h2>{{ editingId() ? 'Edit Category' : 'Create Category' }}</h2>
+  <ng-template #categoryFormTemplate>
+    <h2 mat-dialog-title>{{ editingId() ? 'Edit Category' : 'Create Category' }}</h2>
+    <mat-dialog-content>
+      <form [formGroup]="form" (ngSubmit)="save()" class="form">
+        <div class="grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Name</mat-label>
+            <input matInput formControlName="name" />
+          </mat-form-field>
 
-      <div class="grid">
-        <mat-form-field appearance="outline">
-          <mat-label>Name</mat-label>
-          <input matInput formControlName="name" />
-        </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Display Order</mat-label>
+            <input matInput type="number" formControlName="displayOrder" />
+          </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Display Order</mat-label>
-          <input matInput type="number" formControlName="displayOrder" />
-        </mat-form-field>
+          <div class="upload full">
+            <input type="file" accept="image/*" (change)="onFileSelected($event)" />
+            @if (uploading()) {
+              <span>Uploading...</span>
+            }
+            @if (imagePreview(); as preview) {
+              <img [src]="preview" alt="Preview" class="preview" />
+            }
+          </div>
 
-        <div class="upload full">
-          <input type="file" accept="image/*" (change)="onFileSelected($event)" />
-          @if (uploading()) {
-            <span>Uploading...</span>
-          }
-          @if (imagePreview(); as preview) {
-            <img [src]="preview" alt="Preview" class="preview" />
-          }
+          <mat-slide-toggle formControlName="isActive">Active</mat-slide-toggle>
         </div>
-
-        <mat-slide-toggle formControlName="isActive">Active</mat-slide-toggle>
-      </div>
-
-      <div class="actions">
-        <button mat-stroked-button type="button" (click)="cancelEdit()">Cancel</button>
-        <button mat-flat-button color="primary" type="submit" [disabled]="loading() || uploading()">Save</button>
-      </div>
-    </form>
-  }
+      </form>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-stroked-button type="button" (click)="cancelEdit()">Cancel</button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="loading() || uploading()" (click)="save()">Save</button>
+    </mat-dialog-actions>
+  </ng-template>
 </section>

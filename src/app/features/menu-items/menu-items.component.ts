@@ -1,8 +1,8 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -45,12 +45,14 @@ export class MenuItemsComponent implements OnInit {
   readonly uploading = signal(false);
   readonly error = signal<string | null>(null);
   readonly editingId = signal<string | null>(null);
-  readonly showForm = signal(false);
   readonly imagePreview = signal<string | null>(null);
 
   readonly canCreate = computed(() => this.auth.hasPermission('Menu.Create'));
   readonly canUpdate = computed(() => this.auth.hasPermission('Menu.Update'));
   readonly canDelete = computed(() => this.auth.hasPermission('Menu.Delete'));
+
+  @ViewChild('menuItemFormTemplate') private readonly menuItemFormTemplate?: TemplateRef<any>;
+  private activeDialogRef: MatDialogRef<any> | null = null;
 
   readonly form = this.fb.nonNullable.group({
     categoryId: ['', Validators.required],
@@ -116,7 +118,6 @@ export class MenuItemsComponent implements OnInit {
 
   startCreate(): void {
     this.editingId.set(null);
-    this.showForm.set(true);
     this.form.reset({
       categoryId: this.categories()[0]?.id ?? '',
       name: '',
@@ -133,11 +134,11 @@ export class MenuItemsComponent implements OnInit {
     // generate SKU and barcode for the default category selection
     const defaultCategoryId = this.form.get('categoryId')?.value || this.categories()[0]?.id || '';
     this.generateSkuAndBarcode(defaultCategoryId);
+    this.openFormDialog();
   }
 
   startEdit(item: MenuItemDto): void {
     this.editingId.set(item.id);
-    this.showForm.set(true);
     this.form.reset({
       categoryId: item.categoryId,
       name: item.name,
@@ -151,13 +152,12 @@ export class MenuItemsComponent implements OnInit {
       isActive: item.isActive
     });
     this.imagePreview.set(this.mediaUrl(item.image));
+    this.openFormDialog();
   }
 
   cancelEdit(): void {
-    this.editingId.set(null);
-    this.showForm.set(false);
-    this.form.reset();
-    this.imagePreview.set(null);
+    this.activeDialogRef?.close();
+    this.resetDialogState();
   }
 
   onFileSelected(event: Event): void {
@@ -225,6 +225,31 @@ export class MenuItemsComponent implements OnInit {
         this.notification.error(message);
       }
     });
+  }
+
+  private openFormDialog(): void {
+    if (!this.menuItemFormTemplate) {
+      return;
+    }
+
+    this.activeDialogRef?.close();
+    this.activeDialogRef = this.dialog.open(this.menuItemFormTemplate, {
+      width: '720px',
+      autoFocus: false
+    });
+
+    this.activeDialogRef.afterClosed().subscribe(() => {
+      if (this.activeDialogRef) {
+        this.activeDialogRef = null;
+      }
+      this.resetDialogState();
+    });
+  }
+
+  private resetDialogState(): void {
+    this.editingId.set(null);
+    this.form.reset();
+    this.imagePreview.set(null);
   }
 
   remove(item: MenuItemDto): void {
