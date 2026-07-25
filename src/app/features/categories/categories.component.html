@@ -6,10 +6,6 @@
     }
   </div>
 
-  @if (error(); as err) {
-    <p class="error">{{ err }}</p>
-  }
-
   <table mat-table [dataSource]="categories()" class="table">
     <ng-container matColumnDef="image">
       <th mat-header-cell *matHeaderCellDef>Image</th>

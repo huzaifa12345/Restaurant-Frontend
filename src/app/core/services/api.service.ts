@@ -171,6 +171,11 @@ export class ApiService {
     return this.http.delete<void>(`${environment.apiUrl}/menu-items/${id}`);
   }
 
+  getNextMenuItemIdentifiers(categoryId: string): Observable<{ sku: string; barcode: string }> {
+    const params = new HttpParams().set('categoryId', categoryId);
+    return this.http.get<{ sku: string; barcode: string }>(`${environment.apiUrl}/menu-items/next-identifiers`, { params });
+  }
+
   uploadImage(file: File): Observable<UploadImageResponse> {
     const formData = new FormData();
     formData.append('file', file);

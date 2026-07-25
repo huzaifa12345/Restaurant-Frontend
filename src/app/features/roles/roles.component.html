@@ -6,13 +6,6 @@
     }
   </div>
 
-  @if (error(); as err) {
-    <p class="error">{{ err }}</p>
-  }
-  @if (message(); as msg) {
-    <p class="ok">{{ msg }}</p>
-  }
-
   <table mat-table [dataSource]="roles()" class="table">
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef>Name</th>

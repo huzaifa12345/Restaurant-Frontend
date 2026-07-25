@@ -1,13 +1,17 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { CategoryDto } from '../../core/models/api.models';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-categories',
@@ -16,9 +20,11 @@ import { CategoryDto } from '../../core/models/api.models';
     ReactiveFormsModule,
     MatTableModule,
     MatButtonModule,
+    MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSlideToggleModule
+    MatSlideToggleModule,
+    MatSnackBarModule
   ],
   templateUrl: './categories.component.html',
   styleUrl: './categories.component.scss'
@@ -27,6 +33,8 @@ export class CategoriesComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
+  private readonly dialog = inject(MatDialog);
+  private readonly notification = inject(NotificationService);
 
   readonly categories = signal<CategoryDto[]>([]);
   readonly loading = signal(false);
@@ -62,7 +70,9 @@ export class CategoriesComponent implements OnInit {
       },
       error: (err: { error?: { detail?: string } }) => {
         this.loading.set(false);
-        this.error.set(err?.error?.detail ?? 'Failed to load categories.');
+        const message = err?.error?.detail ?? 'Failed to load categories.';
+        this.error.set(message);
+        this.notification.error(message);
       }
     });
   }
@@ -114,7 +124,9 @@ export class CategoriesComponent implements OnInit {
       },
       error: (err: { error?: { detail?: string } }) => {
         this.uploading.set(false);
-        this.error.set(err?.error?.detail ?? 'Image upload failed.');
+        const message = err?.error?.detail ?? 'Image upload failed.';
+        this.error.set(message);
+        this.notification.error(message);
       }
     });
   }
@@ -145,10 +157,12 @@ export class CategoriesComponent implements OnInit {
         this.loading.set(false);
         this.cancelEdit();
         this.reload();
+        this.notification.success(editingId ? 'Category updated successfully.' : 'Category created successfully.');
       },
       error: (err: { error?: { detail?: string } }) => {
         this.loading.set(false);
-        this.error.set(err?.error?.detail ?? 'Failed to save category.');
+        const message = err?.error?.detail ?? 'Failed to save category.';
+        this.notification.error(message);
       }
     });
   }
@@ -158,10 +172,32 @@ export class CategoriesComponent implements OnInit {
       return;
     }
 
-    this.api.deleteCategory(category.id).subscribe({
-      next: () => this.reload(),
-      error: (err: { error?: { detail?: string } }) =>
-        this.error.set(err?.error?.detail ?? 'Failed to delete category.')
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Delete category',
+        message: `Are you sure you want to delete "${category.name}"?`,
+        confirmText: 'Yes, delete',
+        cancelText: 'No'
+      },
+      autoFocus: false
+    });
+
+    dialogRef.afterClosed().subscribe((confirmed: boolean | undefined) => {
+      if (!confirmed) {
+        return;
+      }
+
+      this.api.deleteCategory(category.id).subscribe({
+        next: () => {
+          this.reload();
+          this.notification.success('Category deleted successfully.');
+        },
+        error: (err: { error?: { detail?: string } }) => {
+          const message = err?.error?.detail ?? 'Failed to delete category.';
+          this.error.set(message);
+          this.notification.error(message);
+        }
+      });
     });
   }
 }

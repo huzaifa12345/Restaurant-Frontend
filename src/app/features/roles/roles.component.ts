@@ -4,9 +4,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { PermissionDto, RoleDto } from '../../core/models/api.models';
 
 @Component({
@@ -18,7 +20,8 @@ import { PermissionDto, RoleDto } from '../../core/models/api.models';
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    MatSnackBarModule
   ],
   templateUrl: './roles.component.html',
   styleUrl: './roles.component.scss'
@@ -27,13 +30,13 @@ export class RolesComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
+  private readonly notification = inject(NotificationService);
 
   readonly roles = signal<RoleDto[]>([]);
   readonly permissions = signal<PermissionDto[]>([]);
   readonly selectedPermissionIds = signal<Set<string>>(new Set());
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
-  readonly message = signal<string | null>(null);
   readonly editingId = signal<string | null>(null);
   readonly showForm = signal(false);
 
@@ -56,8 +59,11 @@ export class RolesComponent implements OnInit {
 
     this.api.getPermissions().subscribe({
       next: (items: PermissionDto[]) => this.permissions.set(items),
-      error: (err: { error?: { detail?: string } }) =>
-        this.error.set(err?.error?.detail ?? 'Failed to load permissions.')
+      error: (err: { error?: { detail?: string } }) => {
+        const message = err?.error?.detail ?? 'Failed to load permissions.';
+        this.error.set(message);
+        this.notification.error(message);
+      }
     });
 
     this.api.getRoles().subscribe({
@@ -67,7 +73,9 @@ export class RolesComponent implements OnInit {
       },
       error: (err: { error?: { detail?: string } }) => {
         this.loading.set(false);
-        this.error.set(err?.error?.detail ?? 'Failed to load roles.');
+        const message = err?.error?.detail ?? 'Failed to load roles.';
+        this.error.set(message);
+        this.notification.error(message);
       }
     });
   }
@@ -75,7 +83,6 @@ export class RolesComponent implements OnInit {
   startCreate(): void {
     this.editingId.set(null);
     this.showForm.set(true);
-    this.message.set(null);
     this.form.reset({ name: '', description: '' });
     this.form.controls.name.enable();
     this.selectedPermissionIds.set(new Set());
@@ -84,7 +91,6 @@ export class RolesComponent implements OnInit {
   startEdit(role: RoleDto): void {
     this.editingId.set(role.id);
     this.showForm.set(true);
-    this.message.set(null);
     this.form.reset({
       name: role.name,
       description: role.description ?? ''
@@ -136,7 +142,6 @@ export class RolesComponent implements OnInit {
     const permissionIds = Array.from(this.selectedPermissionIds());
     this.loading.set(true);
     this.error.set(null);
-    this.message.set(null);
 
     if (!editingId) {
       this.api.createRole({
@@ -146,13 +151,15 @@ export class RolesComponent implements OnInit {
       }).subscribe({
         next: () => {
           this.loading.set(false);
-          this.message.set('Role created.');
           this.cancelEdit();
           this.reload();
+          this.notification.success('Role created successfully.');
         },
         error: (err: { error?: { detail?: string } }) => {
           this.loading.set(false);
-          this.error.set(err?.error?.detail ?? 'Failed to create role.');
+          const message = err?.error?.detail ?? 'Failed to create role.';
+          this.error.set(message);
+          this.notification.error(message);
         }
       });
       return;
@@ -173,19 +180,23 @@ export class RolesComponent implements OnInit {
         this.api.updateRolePermissions(editingId, permissionIds).subscribe({
           next: () => {
             this.loading.set(false);
-            this.message.set('Role updated. Users must re-login to refresh JWT permissions.');
             this.cancelEdit();
             this.reload();
+            this.notification.success('Role updated successfully. Users may need to re-login.');
           },
           error: (err: { error?: { detail?: string } }) => {
             this.loading.set(false);
-            this.error.set(err?.error?.detail ?? 'Failed to update role permissions.');
+            const message = err?.error?.detail ?? 'Failed to update role permissions.';
+            this.error.set(message);
+            this.notification.error(message);
           }
         });
       },
       error: (err: { error?: { detail?: string } }) => {
         this.loading.set(false);
-        this.error.set(err?.error?.detail ?? 'Failed to update role.');
+        const message = err?.error?.detail ?? 'Failed to update role.';
+        this.error.set(message);
+        this.notification.error(message);
       }
     });
   }
@@ -196,9 +207,15 @@ export class RolesComponent implements OnInit {
     }
 
     this.api.deleteRole(role.id).subscribe({
-      next: () => this.reload(),
-      error: (err: { error?: { detail?: string } }) =>
-        this.error.set(err?.error?.detail ?? 'Failed to delete role.')
+      next: () => {
+        this.reload();
+        this.notification.success('Role deleted successfully.');
+      },
+      error: (err: { error?: { detail?: string } }) => {
+        const message = err?.error?.detail ?? 'Failed to delete role.';
+        this.error.set(message);
+        this.notification.error(message);
+      }
     });
   }
 }

@@ -3,15 +3,17 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { CreateRestaurantRequest, RestaurantDto } from '../../core/models/api.models';
 
 @Component({
   selector: 'app-restaurants',
   standalone: true,
-  imports: [ReactiveFormsModule, MatTableModule, MatButtonModule, MatFormFieldModule, MatInputModule],
+  imports: [ReactiveFormsModule, MatTableModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatSnackBarModule],
   templateUrl: './restaurants.component.html',
   styleUrl: './restaurants.component.scss'
 })
@@ -19,12 +21,12 @@ export class RestaurantsComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
+  private readonly notification = inject(NotificationService);
 
   readonly restaurants = signal<RestaurantDto[]>([]);
   readonly loading = signal(false);
   readonly saving = signal(false);
   readonly error = signal<string | null>(null);
-  readonly message = signal<string | null>(null);
   readonly showForm = signal(false);
   readonly canCreate = computed(() => this.auth.hasPermission('Restaurants.Create'));
 
@@ -61,14 +63,15 @@ export class RestaurantsComponent implements OnInit {
       },
       error: (err: { error?: { detail?: string } }) => {
         this.loading.set(false);
-        this.error.set(err?.error?.detail ?? 'Failed to load restaurants.');
+        const message = err?.error?.detail ?? 'Failed to load restaurants.';
+        this.error.set(message);
+        this.notification.error(message);
       }
     });
   }
 
   startCreate(): void {
     this.showForm.set(true);
-    this.message.set(null);
     this.error.set(null);
     this.form.reset({
       name: '',
@@ -118,20 +121,19 @@ export class RestaurantsComponent implements OnInit {
 
     this.saving.set(true);
     this.error.set(null);
-    this.message.set(null);
 
     this.api.createRestaurant(body).subscribe({
       next: created => {
         this.saving.set(false);
         this.showForm.set(false);
-        this.message.set(
-          `Restaurant "${created.name}" created. Admin can log in with restaurant name "${created.name}".`
-        );
+        this.notification.success(`Restaurant "${created.name}" created successfully.`);
         this.reload();
       },
       error: (err: { error?: { detail?: string } }) => {
         this.saving.set(false);
-        this.error.set(err?.error?.detail ?? 'Failed to create restaurant.');
+        const message = err?.error?.detail ?? 'Failed to create restaurant.';
+        this.error.set(message);
+        this.notification.error(message);
       }
     });
   }

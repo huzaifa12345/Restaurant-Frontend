@@ -6,10 +6,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
+import { NotificationService } from '../../core/services/notification.service';
 import { RestaurantDto, RoleDto, UserDto } from '../../core/models/api.models';
 
 @Component({
@@ -23,7 +25,8 @@ import { RestaurantDto, RoleDto, UserDto } from '../../core/models/api.models';
     MatInputModule,
     MatSelectModule,
     MatSlideToggleModule,
-    MatAutocompleteModule
+    MatAutocompleteModule,
+    MatSnackBarModule
   ],
   templateUrl: './users.component.html',
   styleUrl: './users.component.scss'
@@ -32,6 +35,7 @@ export class UsersComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
+  private readonly notification = inject(NotificationService);
 
   readonly users = signal<UserDto[]>([]);
   readonly roles = signal<RoleDto[]>([]);
@@ -96,8 +100,11 @@ export class UsersComponent implements OnInit {
   ngOnInit(): void {
     this.api.getRoles().subscribe({
       next: (roles: RoleDto[]) => this.roles.set(roles),
-      error: (err: { error?: { detail?: string } }) =>
-        this.error.set(err?.error?.detail ?? 'Failed to load roles.')
+      error: (err: { error?: { detail?: string } }) => {
+        const message = err?.error?.detail ?? 'Failed to load roles.';
+        this.error.set(message);
+        this.notification.error(message);
+      }
     });
 
     if (this.isPlatform()) {
@@ -106,7 +113,11 @@ export class UsersComponent implements OnInit {
           this.restaurants.set(list);
           this.filteredRestaurants.set(list);
         },
-        error: () => this.restaurants.set([])
+        error: (err: { error?: { detail?: string } }) => {
+          const message = err?.error?.detail ?? 'Failed to load restaurants.';
+          this.restaurants.set([]);
+          this.notification.error(message);
+        }
       });
 
       this.usernameFilter.valueChanges
@@ -162,7 +173,9 @@ export class UsersComponent implements OnInit {
         },
         error: (err: { error?: { detail?: string } }) => {
           this.loading.set(false);
-          this.error.set(err?.error?.detail ?? 'Failed to load users.');
+          const message = err?.error?.detail ?? 'Failed to load users.';
+          this.error.set(message);
+          this.notification.error(message);
         }
       });
   }
@@ -296,10 +309,13 @@ export class UsersComponent implements OnInit {
           this.loading.set(false);
           this.cancelEdit();
           this.loadUsers();
+          this.notification.success('User created successfully.');
         },
         error: (err: { error?: { detail?: string } }) => {
           this.loading.set(false);
-          this.error.set(err?.error?.detail ?? 'Failed to create user.');
+          const message = err?.error?.detail ?? 'Failed to create user.';
+          this.error.set(message);
+          this.notification.error(message);
         }
       });
       return;
@@ -318,10 +334,13 @@ export class UsersComponent implements OnInit {
         this.loading.set(false);
         this.cancelEdit();
         this.loadUsers();
+        this.notification.success('User updated successfully.');
       },
       error: (err: { error?: { detail?: string } }) => {
         this.loading.set(false);
-        this.error.set(err?.error?.detail ?? 'Failed to update user.');
+        const message = err?.error?.detail ?? 'Failed to update user.';
+        this.error.set(message);
+        this.notification.error(message);
       }
     });
   }
@@ -332,9 +351,15 @@ export class UsersComponent implements OnInit {
     }
 
     this.api.setUserStatus(user.id, !user.isActive).subscribe({
-      next: () => this.loadUsers(),
-      error: (err: { error?: { detail?: string } }) =>
-        this.error.set(err?.error?.detail ?? 'Failed to update status.')
+      next: () => {
+        this.loadUsers();
+        this.notification.success(`User ${user.isActive ? 'deactivated' : 'activated'} successfully.`);
+      },
+      error: (err: { error?: { detail?: string } }) => {
+        const message = err?.error?.detail ?? 'Failed to update status.';
+        this.error.set(message);
+        this.notification.error(message);
+      }
     });
   }
 }

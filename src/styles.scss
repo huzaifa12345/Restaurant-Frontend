@@ -3,6 +3,25 @@
 html, body { height: 100%; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 
+.mat-snack-bar-container {
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.snackbar-success {
+  background-color: #2e7d32 !important;
+}
+
+.snackbar-error {
+  background-color: #d32f2f !important;
+}
+
+.snackbar-info {
+  background-color: #1976d2 !important;
+}
+
 @media print {
   @page {
     size: 80mm auto;

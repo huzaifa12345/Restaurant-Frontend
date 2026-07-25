@@ -36,6 +36,11 @@ ng build
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
+## Feature Notes
+
+- Menu item create/edit forms now auto-generate `SKU` and `Barcode` values and display them as read-only fields.
+- The delete button now opens an Angular Material confirmation dialog before removing a menu item.
+
 ## Running unit tests
 
 To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:

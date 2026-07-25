@@ -21,10 +21,6 @@
     </mat-form-field>
   </div>
 
-  @if (error(); as err) {
-    <p class="error">{{ err }}</p>
-  }
-
   <div class="cards">
     @for (item of items(); track item.id) {
       <article class="card">
@@ -75,6 +71,16 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
+          <mat-label>SKU</mat-label>
+          <input matInput formControlName="sku" [disabled]="true" readonly />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Barcode</mat-label>
+          <input matInput formControlName="barcode" [disabled]="true" readonly />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
           <mat-label>Price</mat-label>
           <input matInput type="number" formControlName="price" />
         </mat-form-field>
@@ -82,16 +88,6 @@
         <mat-form-field appearance="outline">
           <mat-label>Cost Price</mat-label>
           <input matInput type="number" formControlName="costPrice" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>SKU</mat-label>
-          <input matInput formControlName="sku" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Barcode</mat-label>
-          <input matInput formControlName="barcode" />
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full">
