@@ -324,9 +324,14 @@ export interface InvoiceDto {
 export interface SalesSummaryDto {
   from: string;
   to: string;
+  /** Completed orders only. */
   orderCount: number;
   cancelledCount: number;
   deliveryCount: number;
+  dineInCount: number;
+  takeawayCount: number;
+  cashCount: number;
+  onlineCount: number;
   grossSales: number;
   discountTotal: number;
   taxTotal: number;

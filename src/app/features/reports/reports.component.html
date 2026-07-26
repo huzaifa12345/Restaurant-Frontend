@@ -1,8 +1,8 @@
 <section class="panel">
   <div class="header">
     <div>
-      <h1>Reports</h1>
-      <p class="muted">Sales, orders, top items, cancelled and delivery for the selected dates.</p>
+      <h1>Sales Reports</h1>
+      <p class="muted">Sales summary, orders, top items, cancelled and delivery for the selected dates.</p>
     </div>
   </div>
 
@@ -24,206 +24,242 @@
     <p class="error">{{ err }}</p>
   }
 
+  @if (filterLabel()) {
+    <p class="muted range-label">Showing for {{ filterLabel() }}</p>
+  }
+
   @if (summary(); as s) {
     <div class="summary">
-      <p class="summary-range muted">Showing for {{ filterLabel() }} · KPI cards use Completed orders only</p>
       <div class="stat">
         <span>Net Sales</span>
         <strong>{{ s.netSales | number: '1.0-2' }}</strong>
       </div>
       <div class="stat">
-        <span>Orders</span>
-        <strong>{{ s.orderCount }}</strong>
+        <span>Completed Orders</span>
+        <strong>{{ s.orderCount ?? 0 }}</strong>
       </div>
       <div class="stat">
         <span>Avg Ticket</span>
         <strong>{{ s.averageTicket | number: '1.0-2' }}</strong>
       </div>
       <div class="stat">
-        <span>Delivery</span>
-        <strong>{{ s.deliveryCount }}</strong>
-      </div>
-      <div class="stat">
-        <span>Cancelled</span>
-        <strong>{{ s.cancelledCount }}</strong>
-      </div>
-      <div class="stat">
         <span>Gross</span>
         <strong>{{ s.grossSales | number: '1.0-2' }}</strong>
       </div>
+      <div class="stat">
+        <span>Dine-In</span>
+        <strong>{{ s.dineInCount ?? 0 }}</strong>
+      </div>
+      <div class="stat">
+        <span>Takeaway</span>
+        <strong>{{ s.takeawayCount ?? 0 }}</strong>
+      </div>
+      <div class="stat">
+        <span>Delivery</span>
+        <strong>{{ s.deliveryCount ?? 0 }}</strong>
+      </div>
+      <div class="stat">
+        <span>Cash</span>
+        <strong>{{ s.cashCount ?? 0 }}</strong>
+      </div>
+      <div class="stat">
+        <span>Online</span>
+        <strong>{{ s.onlineCount ?? 0 }}</strong>
+      </div>
+      <div class="stat">
+        <span>Cancelled</span>
+        <strong>{{ s.cancelledCount ?? 0 }}</strong>
+      </div>
     </div>
+    <p class="muted summary-note">Counts and sales use Completed orders only (Cancelled is all cancelled in range).</p>
   } @else if (loading()) {
     <p class="muted">Loading summary…</p>
   }
 
-  <section class="block">
-    <div class="block-head">
-      <h2>Order Report</h2>
-      <span class="muted">{{ ordersTotal() }} total · page {{ ordersPage() }} / {{ ordersTotalPages() || 1 }}</span>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Order No</th>
-            <th>Date</th>
-            <th>Type</th>
-            <th>Payment</th>
-            <th>Status</th>
-            <th>Total</th>
-            <th>Items</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of orders(); track row.id) {
-            <tr>
-              <td>{{ row.orderNo }}</td>
-              <td>{{ row.createdAt | date: 'medium' }}</td>
-              <td>{{ row.orderType }}</td>
-              <td>{{ row.paymentType }}</td>
-              <td>{{ row.orderStatus }}</td>
-              <td>{{ row.grandTotal | number: '1.0-2' }}</td>
-              <td>{{ row.itemCount }}</td>
-            </tr>
-          } @empty {
-            <tr><td colspan="7" class="muted">No orders in this range.</td></tr>
-          }
-        </tbody>
-      </table>
-    </div>
-    <div class="pager">
-      <button mat-stroked-button type="button" [disabled]="ordersPage() <= 1" (click)="goOrdersPage(ordersPage() - 1)">
-        Previous
-      </button>
-      <button
-        mat-stroked-button
-        type="button"
-        [disabled]="ordersTotalPages() === 0 || ordersPage() >= ordersTotalPages()"
-        (click)="goOrdersPage(ordersPage() + 1)">
-        Next
-      </button>
-    </div>
-  </section>
+  <mat-tab-group
+    class="report-tabs"
+    animationDuration="200ms"
+    [selectedIndex]="selectedTabIndex()"
+    (selectedIndexChange)="selectedTabIndex.set($event)">
+    <mat-tab label="Order Report">
+      <div class="tab-body">
+        <div class="block-head">
+          <h2>Order Report</h2>
+          <span class="muted">{{ ordersTotal() }} total · page {{ ordersPage() }} / {{ ordersTotalPages() || 1 }}</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Order No</th>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Payment</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th>Items</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of orders(); track row.id) {
+                <tr>
+                  <td>{{ row.orderNo }}</td>
+                  <td>{{ row.createdAt | date: 'medium' }}</td>
+                  <td>{{ row.orderType }}</td>
+                  <td>{{ row.paymentType }}</td>
+                  <td>{{ row.orderStatus }}</td>
+                  <td>{{ row.grandTotal | number: '1.0-2' }}</td>
+                  <td>{{ row.itemCount }}</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="7" class="muted">No orders in this range.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <button mat-stroked-button type="button" [disabled]="ordersPage() <= 1" (click)="goOrdersPage(ordersPage() - 1)">
+            Previous
+          </button>
+          <button
+            mat-stroked-button
+            type="button"
+            [disabled]="ordersTotalPages() === 0 || ordersPage() >= ordersTotalPages()"
+            (click)="goOrdersPage(ordersPage() + 1)">
+            Next
+          </button>
+        </div>
+      </div>
+    </mat-tab>
 
-  <section class="block">
-    <h2>Top Selling Items</h2>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>Qty Sold</th>
-            <th>Sales</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of topItems(); track row.menuItemId) {
-            <tr>
-              <td>{{ row.name }}</td>
-              <td>{{ row.quantitySold }}</td>
-              <td>{{ row.salesAmount | number: '1.0-2' }}</td>
-            </tr>
-          } @empty {
-            <tr><td colspan="3" class="muted">No item sales in this range.</td></tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  </section>
+    <mat-tab label="Top Selling Items">
+      <div class="tab-body">
+        <div class="block-head">
+          <h2>Top Selling Items</h2>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Qty Sold</th>
+                <th>Sales</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of topItems(); track row.menuItemId) {
+                <tr>
+                  <td>{{ row.name }}</td>
+                  <td>{{ row.quantitySold }}</td>
+                  <td>{{ row.salesAmount | number: '1.0-2' }}</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="3" class="muted">No item sales in this range.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </mat-tab>
 
-  <section class="block">
-    <div class="block-head">
-      <h2>Cancelled Orders</h2>
-      <span class="muted">{{ cancelledTotal() }} total · page {{ cancelledPage() }} / {{ cancelledTotalPages() || 1 }}</span>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Order No</th>
-            <th>Date</th>
-            <th>Type</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of cancelled(); track row.id) {
-            <tr>
-              <td>{{ row.orderNo }}</td>
-              <td>{{ row.createdAt | date: 'medium' }}</td>
-              <td>{{ row.orderType }}</td>
-              <td>{{ row.grandTotal | number: '1.0-2' }}</td>
-            </tr>
-          } @empty {
-            <tr><td colspan="4" class="muted">No cancelled orders in this range.</td></tr>
-          }
-        </tbody>
-      </table>
-    </div>
-    <div class="pager">
-      <button
-        mat-stroked-button
-        type="button"
-        [disabled]="cancelledPage() <= 1"
-        (click)="goCancelledPage(cancelledPage() - 1)">
-        Previous
-      </button>
-      <button
-        mat-stroked-button
-        type="button"
-        [disabled]="cancelledTotalPages() === 0 || cancelledPage() >= cancelledTotalPages()"
-        (click)="goCancelledPage(cancelledPage() + 1)">
-        Next
-      </button>
-    </div>
-  </section>
+    <mat-tab label="Cancelled Orders">
+      <div class="tab-body">
+        <div class="block-head">
+          <h2>Cancelled Orders</h2>
+          <span class="muted">{{ cancelledTotal() }} total · page {{ cancelledPage() }} / {{ cancelledTotalPages() || 1 }}</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Order No</th>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of cancelled(); track row.id) {
+                <tr>
+                  <td>{{ row.orderNo }}</td>
+                  <td>{{ row.createdAt | date: 'medium' }}</td>
+                  <td>{{ row.orderType }}</td>
+                  <td>{{ row.grandTotal | number: '1.0-2' }}</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="4" class="muted">No cancelled orders in this range.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <button
+            mat-stroked-button
+            type="button"
+            [disabled]="cancelledPage() <= 1"
+            (click)="goCancelledPage(cancelledPage() - 1)">
+            Previous
+          </button>
+          <button
+            mat-stroked-button
+            type="button"
+            [disabled]="cancelledTotalPages() === 0 || cancelledPage() >= cancelledTotalPages()"
+            (click)="goCancelledPage(cancelledPage() + 1)">
+            Next
+          </button>
+        </div>
+      </div>
+    </mat-tab>
 
-  <section class="block">
-    <div class="block-head">
-      <h2>Delivery Orders</h2>
-      <span class="muted">{{ deliveryTotal() }} total · page {{ deliveryPage() }} / {{ deliveryTotalPages() || 1 }}</span>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Order No</th>
-            <th>Date</th>
-            <th>Payment</th>
-            <th>Status</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (row of delivery(); track row.id) {
-            <tr>
-              <td>{{ row.orderNo }}</td>
-              <td>{{ row.createdAt | date: 'medium' }}</td>
-              <td>{{ row.paymentType }}</td>
-              <td>{{ row.orderStatus }}</td>
-              <td>{{ row.grandTotal | number: '1.0-2' }}</td>
-            </tr>
-          } @empty {
-            <tr><td colspan="5" class="muted">No delivery orders in this range.</td></tr>
-          }
-        </tbody>
-      </table>
-    </div>
-    <div class="pager">
-      <button
-        mat-stroked-button
-        type="button"
-        [disabled]="deliveryPage() <= 1"
-        (click)="goDeliveryPage(deliveryPage() - 1)">
-        Previous
-      </button>
-      <button
-        mat-stroked-button
-        type="button"
-        [disabled]="deliveryTotalPages() === 0 || deliveryPage() >= deliveryTotalPages()"
-        (click)="goDeliveryPage(deliveryPage() + 1)">
-        Next
-      </button>
-    </div>
-  </section>
+    <mat-tab label="Delivery Orders">
+      <div class="tab-body">
+        <div class="block-head">
+          <h2>Delivery Orders</h2>
+          <span class="muted">{{ deliveryTotal() }} total · page {{ deliveryPage() }} / {{ deliveryTotalPages() || 1 }}</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Order No</th>
+                <th>Date</th>
+                <th>Payment</th>
+                <th>Status</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of delivery(); track row.id) {
+                <tr>
+                  <td>{{ row.orderNo }}</td>
+                  <td>{{ row.createdAt | date: 'medium' }}</td>
+                  <td>{{ row.paymentType }}</td>
+                  <td>{{ row.orderStatus }}</td>
+                  <td>{{ row.grandTotal | number: '1.0-2' }}</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="5" class="muted">No delivery orders in this range.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <button
+            mat-stroked-button
+            type="button"
+            [disabled]="deliveryPage() <= 1"
+            (click)="goDeliveryPage(deliveryPage() - 1)">
+            Previous
+          </button>
+          <button
+            mat-stroked-button
+            type="button"
+            [disabled]="deliveryTotalPages() === 0 || deliveryPage() >= deliveryTotalPages()"
+            (click)="goDeliveryPage(deliveryPage() + 1)">
+            Next
+          </button>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
 </section>

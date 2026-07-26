@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatTabsModule } from '@angular/material/tabs';
 import { forkJoin } from 'rxjs';
 import { ApiService } from '../../core/services/api.service';
 import { ReportOrderDto, SalesSummaryDto, TopSellingItemDto } from '../../core/models/api.models';
@@ -19,7 +20,8 @@ const PAGE_SIZE = 40;
     ReactiveFormsModule,
     MatButtonModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    MatTabsModule
   ],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss'
@@ -29,6 +31,7 @@ export class ReportsComponent implements OnInit {
   private readonly api = inject(ApiService);
 
   readonly pageSize = PAGE_SIZE;
+  readonly selectedTabIndex = signal(0);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly appliedFrom = signal('');
@@ -135,7 +138,7 @@ export class ReportsComponent implements OnInit {
       delivery: this.api.getDeliveryOrdersReport(from, to, this.deliveryPage(), PAGE_SIZE)
     }).subscribe({
       next: result => {
-        this.summary.set(result.summary);
+        this.summary.set(this.normalizeSummary(result.summary));
         this.topItems.set(result.topItems);
         this.applyOrdersPage(result.orders);
         this.applyCancelledPage(result.cancelled);
@@ -213,6 +216,25 @@ export class ReportsComponent implements OnInit {
     this.deliveryPage.set(page.page);
     this.deliveryTotal.set(page.totalCount);
     this.deliveryTotalPages.set(page.totalPages);
+  }
+
+  private normalizeSummary(summary: SalesSummaryDto): SalesSummaryDto {
+    return {
+      ...summary,
+      orderCount: summary.orderCount ?? 0,
+      cancelledCount: summary.cancelledCount ?? 0,
+      deliveryCount: summary.deliveryCount ?? 0,
+      dineInCount: summary.dineInCount ?? 0,
+      takeawayCount: summary.takeawayCount ?? 0,
+      cashCount: summary.cashCount ?? 0,
+      onlineCount: summary.onlineCount ?? 0,
+      grossSales: summary.grossSales ?? 0,
+      discountTotal: summary.discountTotal ?? 0,
+      taxTotal: summary.taxTotal ?? 0,
+      deliveryChargesTotal: summary.deliveryChargesTotal ?? 0,
+      netSales: summary.netSales ?? 0,
+      averageTicket: summary.averageTicket ?? 0
+    };
   }
 
   private toInputDate(date: Date): string {
