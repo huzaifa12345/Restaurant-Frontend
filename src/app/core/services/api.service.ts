@@ -6,6 +6,7 @@ import {
   CategoryDto,
   CategoryRequest,
   CreateOrderRequest,
+  CreatePurchaseRequest,
   CreateRestaurantRequest,
   CreateRoleRequest,
   CreateUserRequest,
@@ -19,12 +20,25 @@ import {
   OrderType,
   PagedResultDto,
   PermissionDto,
+  PurchaseDto,
+  PurchaseReportRowDto,
+  RawMaterialCategoryDto,
+  RawMaterialCategoryRequest,
+  RawMaterialDto,
+  RawMaterialRequest,
+  ReplacePackSizesRequest,
   ReportOrderDto,
   RestaurantDto,
   RestaurantLookupDto,
   RoleDto,
   SalesSummaryDto,
+  StockReportDto,
+  SupplierDto,
+  SupplierRequest,
   TopSellingItemDto,
+  UnitOfMeasureDto,
+  UnitOfMeasureRequest,
+  UpdatePurchaseRequest,
   UpdateRestaurantRequest,
   UpdateRoleRequest,
   UpdateUserRequest,
@@ -287,5 +301,218 @@ export class ApiService {
     return this.http.get<PagedResultDto<ReportOrderDto>>(`${environment.apiUrl}/reports/delivery-orders`, {
       params
     });
+  }
+
+  getUnitsOfMeasure(): Observable<UnitOfMeasureDto[]> {
+    return this.http.get<UnitOfMeasureDto[]>(`${environment.apiUrl}/units-of-measure`);
+  }
+
+  createUnitOfMeasure(body: UnitOfMeasureRequest): Observable<UnitOfMeasureDto> {
+    return this.http.post<UnitOfMeasureDto>(`${environment.apiUrl}/units-of-measure`, body);
+  }
+
+  updateUnitOfMeasure(id: string, body: UnitOfMeasureRequest): Observable<UnitOfMeasureDto> {
+    return this.http.put<UnitOfMeasureDto>(`${environment.apiUrl}/units-of-measure/${id}`, body);
+  }
+
+  deleteUnitOfMeasure(id: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/units-of-measure/${id}`);
+  }
+
+  getRawMaterialCategories(): Observable<RawMaterialCategoryDto[]> {
+    return this.http.get<RawMaterialCategoryDto[]>(`${environment.apiUrl}/raw-material-categories`);
+  }
+
+  createRawMaterialCategory(body: RawMaterialCategoryRequest): Observable<RawMaterialCategoryDto> {
+    return this.http.post<RawMaterialCategoryDto>(`${environment.apiUrl}/raw-material-categories`, body);
+  }
+
+  updateRawMaterialCategory(id: string, body: RawMaterialCategoryRequest): Observable<RawMaterialCategoryDto> {
+    return this.http.put<RawMaterialCategoryDto>(`${environment.apiUrl}/raw-material-categories/${id}`, body);
+  }
+
+  deleteRawMaterialCategory(id: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/raw-material-categories/${id}`);
+  }
+
+  getRawMaterials(categoryId?: string | null, activeOnly = false): Observable<RawMaterialDto[]> {
+    let params = new HttpParams().set('activeOnly', String(activeOnly));
+    if (categoryId) {
+      params = params.set('categoryId', categoryId);
+    }
+    return this.http.get<RawMaterialDto[]>(`${environment.apiUrl}/raw-materials`, { params });
+  }
+
+  getRawMaterial(id: string): Observable<RawMaterialDto> {
+    return this.http.get<RawMaterialDto>(`${environment.apiUrl}/raw-materials/${id}`);
+  }
+
+  getNextRawMaterialBarcode(): Observable<{ barcode: string }> {
+    return this.http.get<{ barcode: string }>(`${environment.apiUrl}/raw-materials/next-barcode`);
+  }
+
+  createRawMaterial(body: RawMaterialRequest): Observable<RawMaterialDto> {
+    return this.http.post<RawMaterialDto>(`${environment.apiUrl}/raw-materials`, body);
+  }
+
+  updateRawMaterial(id: string, body: RawMaterialRequest): Observable<RawMaterialDto> {
+    return this.http.put<RawMaterialDto>(`${environment.apiUrl}/raw-materials/${id}`, body);
+  }
+
+  replaceRawMaterialPackSizes(id: string, body: ReplacePackSizesRequest): Observable<RawMaterialDto> {
+    return this.http.put<RawMaterialDto>(`${environment.apiUrl}/raw-materials/${id}/pack-sizes`, body);
+  }
+
+  deleteRawMaterial(id: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/raw-materials/${id}`);
+  }
+
+  getSuppliers(): Observable<SupplierDto[]> {
+    return this.http.get<SupplierDto[]>(`${environment.apiUrl}/suppliers`);
+  }
+
+  createSupplier(body: SupplierRequest): Observable<SupplierDto> {
+    return this.http.post<SupplierDto>(`${environment.apiUrl}/suppliers`, body);
+  }
+
+  updateSupplier(id: string, body: SupplierRequest): Observable<SupplierDto> {
+    return this.http.put<SupplierDto>(`${environment.apiUrl}/suppliers/${id}`, body);
+  }
+
+  deleteSupplier(id: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/suppliers/${id}`);
+  }
+
+  getPurchases(from?: string | null, to?: string | null, supplierId?: string | null): Observable<PurchaseDto[]> {
+    let params = new HttpParams();
+    if (from) {
+      params = params.set('from', from);
+    }
+    if (to) {
+      params = params.set('to', to);
+    }
+    if (supplierId) {
+      params = params.set('supplierId', supplierId);
+    }
+    return this.http.get<PurchaseDto[]>(`${environment.apiUrl}/purchases`, { params });
+  }
+
+  getPurchase(id: string): Observable<PurchaseDto> {
+    return this.http.get<PurchaseDto>(`${environment.apiUrl}/purchases/${id}`);
+  }
+
+  createPurchase(body: CreatePurchaseRequest): Observable<PurchaseDto> {
+    return this.http.post<PurchaseDto>(`${environment.apiUrl}/purchases`, body);
+  }
+
+  updatePurchase(id: string, body: UpdatePurchaseRequest): Observable<PurchaseDto> {
+    return this.http.put<PurchaseDto>(`${environment.apiUrl}/purchases/${id}`, body);
+  }
+
+  deletePurchase(id: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/purchases/${id}`);
+  }
+
+  getPurchaseReport(
+    from: string,
+    to: string,
+    supplierId?: string | null,
+    rawMaterialId?: string | null
+  ): Observable<PurchaseReportRowDto[]> {
+    let params = new HttpParams().set('from', from).set('to', to);
+    if (supplierId) {
+      params = params.set('supplierId', supplierId);
+    }
+    if (rawMaterialId) {
+      params = params.set('rawMaterialId', rawMaterialId);
+    }
+    return this.http.get<PurchaseReportRowDto[]>(`${environment.apiUrl}/reports/purchases`, { params });
+  }
+
+  getStockReport(
+    categoryId?: string | null,
+    rawMaterialId?: string | null,
+    activeOnly = false
+  ): Observable<StockReportDto> {
+    let params = new HttpParams().set('activeOnly', String(activeOnly));
+    if (categoryId) {
+      params = params.set('categoryId', categoryId);
+    }
+    if (rawMaterialId) {
+      params = params.set('rawMaterialId', rawMaterialId);
+    }
+    return this.http.get<StockReportDto>(`${environment.apiUrl}/reports/stock`, { params });
+  }
+
+  downloadPurchaseReportExport(
+    format: 'xlsx' | 'pdf',
+    from: string,
+    to: string,
+    supplierId?: string | null,
+    rawMaterialId?: string | null
+  ): void {
+    let params = new HttpParams().set('from', from).set('to', to).set('format', format);
+    if (supplierId) {
+      params = params.set('supplierId', supplierId);
+    }
+    if (rawMaterialId) {
+      params = params.set('rawMaterialId', rawMaterialId);
+    }
+    this.downloadBlob(
+      `${environment.apiUrl}/reports/purchases/export`,
+      params,
+      `purchase-report.${format === 'pdf' ? 'pdf' : 'xlsx'}`
+    );
+  }
+
+  downloadStockReportExport(
+    format: 'xlsx' | 'pdf',
+    categoryId?: string | null,
+    rawMaterialId?: string | null,
+    activeOnly = false
+  ): void {
+    let params = new HttpParams().set('format', format).set('activeOnly', String(activeOnly));
+    if (categoryId) {
+      params = params.set('categoryId', categoryId);
+    }
+    if (rawMaterialId) {
+      params = params.set('rawMaterialId', rawMaterialId);
+    }
+    this.downloadBlob(
+      `${environment.apiUrl}/reports/stock/export`,
+      params,
+      `stock-report.${format === 'pdf' ? 'pdf' : 'xlsx'}`
+    );
+  }
+
+  private downloadBlob(url: string, params: HttpParams, fallbackFilename: string): void {
+    this.http.get(url, { params, responseType: 'blob', observe: 'response' }).subscribe({
+      next: response => {
+        const blob = response.body;
+        if (!blob) {
+          return;
+        }
+        const disposition = response.headers.get('content-disposition');
+        const filename = this.parseFilename(disposition) ?? fallbackFilename;
+        const objectUrl = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = objectUrl;
+        anchor.download = filename;
+        anchor.click();
+        URL.revokeObjectURL(objectUrl);
+      }
+    });
+  }
+
+  private parseFilename(disposition: string | null): string | null {
+    if (!disposition) {
+      return null;
+    }
+    const utfMatch = /filename\*=UTF-8''([^;]+)/i.exec(disposition);
+    if (utfMatch?.[1]) {
+      return decodeURIComponent(utfMatch[1].trim());
+    }
+    const match = /filename="?([^";]+)"?/i.exec(disposition);
+    return match?.[1]?.trim() ?? null;
   }
 }

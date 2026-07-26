@@ -27,6 +27,14 @@ export class ShellComponent {
   readonly canViewReports = computed(() => this.auth.hasPermission('Reports.View'));
   readonly canUsePos = computed(() => this.auth.hasPermission('Orders.Create'));
   readonly canViewMenu = computed(() => this.auth.hasPermission('Menu.View'));
+  readonly canViewInventory = computed(() => this.auth.hasPermission('Inventory.View'));
+  readonly canViewPurchases = computed(() => this.auth.hasPermission('Purchases.View'));
+  readonly showInventoryNav = computed(
+    () => this.canViewInventory() || this.canViewPurchases() || this.canViewReports()
+  );
+  readonly showAdminNav = computed(
+    () => this.canManageUsers() || this.canManageRoles() || this.canUpdateRestaurant() || this.canManageRestaurants()
+  );
 
   logout(): void {
     this.auth.logout();

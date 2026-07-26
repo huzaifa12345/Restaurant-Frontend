@@ -22,5 +22,10 @@ Multi-tenant SaaS Restaurant Management System. This is the Angular 20 frontend;
 - NO public sign-up screen. Restaurants and users are created only by an admin (in-app), never via a public form.
 - Roles: Admin, Manager, Cashier. Show/hide UI by permissions.
 
-## MVP scope
-Auth, Restaurant settings, Users, Roles, Categories, Menu, POS/Orders, Invoice printing, Reports, Dashboard. Everything else (Kitchen, Inventory, etc.) is future work.
+## Navigation groups
+- **Sales:** Dashboard, POS, Categories, Menu Items, Sales Reports
+- **Inventory:** UOMs, RM Categories, Raw Materials, Suppliers, Purchases, Purchase Reports, Stock Report
+- **Admin:** Users, Roles, Restaurant Settings, Restaurants (platform)
+
+## Scope
+Auth, Restaurant settings, Users, Roles, Categories, Menu, POS/Orders, Invoice printing, Sales Reports, Dashboard, Inventory (UOM, RM categories, raw materials + pack sizes, suppliers, purchases, stock), Purchase/Stock reports with Excel/PDF export. Kitchen, Recipe, Accounting, etc. remain future work.

@@ -1,0 +1,143 @@
+<section class="panel">
+  <div class="header">
+    <h1>Raw Materials</h1>
+    @if (canCreate()) {
+      <button mat-flat-button color="primary" type="button" (click)="startCreate()">Add Raw Material</button>
+    }
+  </div>
+
+  <table mat-table [dataSource]="items()" class="table">
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="barcode">
+      <th mat-header-cell *matHeaderCellDef>Barcode</th>
+      <td mat-cell *matCellDef="let row">{{ row.barcode }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="category">
+      <th mat-header-cell *matHeaderCellDef>Category</th>
+      <td mat-cell *matCellDef="let row">{{ row.categoryName }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="baseUom">
+      <th mat-header-cell *matHeaderCellDef>Base UOM</th>
+      <td mat-cell *matCellDef="let row">{{ row.baseUomName }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="packs">
+      <th mat-header-cell *matHeaderCellDef>Packs</th>
+      <td mat-cell *matCellDef="let row">{{ row.packSizeCount ?? 0 }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="active">
+      <th mat-header-cell *matHeaderCellDef>Active</th>
+      <td mat-cell *matCellDef="let row">{{ row.isActive ? 'Yes' : 'No' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let row">
+        @if (canUpdate() && row.canEdit !== false) {
+          <button mat-button type="button" (click)="startEdit(row)">Edit</button>
+          <button mat-icon-button type="button" title="Pack sizes" (click)="openPackSizes(row)">
+            <mat-icon>settings</mat-icon>
+          </button>
+        }
+        @if (canDelete() && row.canDelete !== false) {
+          <button mat-button type="button" (click)="remove(row)">Delete</button>
+        }
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+
+  @if (showForm()) {
+    <form [formGroup]="form" (ngSubmit)="save()" class="form">
+      <h2>{{ editingId() ? 'Edit Raw Material' : 'Create Raw Material' }}</h2>
+      <div class="grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Category</mat-label>
+          <mat-select formControlName="categoryId">
+            @for (cat of categories(); track cat.id) {
+              <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Base UOM</mat-label>
+          <mat-select formControlName="baseUomId">
+            @for (uom of uoms(); track uom.id) {
+              <mat-option [value]="uom.id">{{ uom.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Barcode</mat-label>
+          <input matInput formControlName="barcode" readonly />
+        </mat-form-field>
+
+        <mat-slide-toggle formControlName="isActive">Active</mat-slide-toggle>
+      </div>
+      <div class="actions">
+        <button mat-stroked-button type="button" (click)="cancelEdit()">Cancel</button>
+        <button mat-flat-button color="primary" type="submit" [disabled]="loading()">Save</button>
+      </div>
+    </form>
+  }
+
+  <ng-template #packSizesTemplate>
+    <h2 mat-dialog-title>Pack Sizes — {{ packMaterial()?.name }}</h2>
+    <mat-dialog-content>
+      <p class="muted">
+        Pack sizes convert to the base unit ({{ packMaterial()?.baseUomName }}). Example: 1 Carton = 24
+        {{ packMaterial()?.baseUomName }}.
+      </p>
+      <form [formGroup]="packForm" class="pack-form">
+        <div formArrayName="rows" class="pack-rows">
+          @for (row of packRows.controls; track $index; let i = $index) {
+            <div class="pack-row" [formGroupName]="i">
+              <span>1</span>
+              <mat-form-field appearance="outline">
+                <mat-label>UOM</mat-label>
+                <mat-select formControlName="uomId">
+                  @for (uom of uoms(); track uom.id) {
+                    <mat-option [value]="uom.id" [disabled]="uom.id === packMaterial()?.baseUomId">
+                      {{ uom.name }}
+                    </mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <span>=</span>
+              <mat-form-field appearance="outline">
+                <mat-label>Factor</mat-label>
+                <input matInput type="number" step="any" formControlName="factor" />
+              </mat-form-field>
+              <span>{{ packMaterial()?.baseUomName }}</span>
+              <button mat-button type="button" (click)="removePackRow(i)">Remove</button>
+            </div>
+          }
+        </div>
+      </form>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-stroked-button type="button" (click)="addPackRow()">Add row</button>
+      <span class="spacer"></span>
+      <button mat-stroked-button type="button" (click)="closePackSizes()">Cancel</button>
+      <button mat-flat-button color="primary" type="button" [disabled]="loading()" (click)="savePackSizes()">
+        Save
+      </button>
+    </mat-dialog-actions>
+  </ng-template>
+</section>
