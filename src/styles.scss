@@ -1,11 +1,68 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global design tokens — see docs/DESIGN.md */
+:root {
+  --color-accent: #e85d04;
+  --color-accent-hover: #d00000;
+  --color-accent-soft: rgba(232, 93, 4, 0.12);
+  --color-ink: #1c1410;
+  --color-ink-muted: #6b5e54;
+  --color-surface: #ffffff;
+  --color-canvas: #f3eee8;
+  --color-border: #e6ddd4;
+  --color-brand-deep: #1a120b;
+  --color-brand-mid: #2a1c14;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --shadow-card: 0 18px 50px rgba(28, 20, 16, 0.12);
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Outfit', 'Segoe UI', sans-serif;
+  --sidebar-width: 260px;
+  --topbar-height: 56px;
+}
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  background: var(--color-canvas);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+.brand-display {
+  font-family: var(--font-display);
+}
+
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-unelevated-button.mat-primary,
+.mat-mdc-flat-button.mat-primary {
+  --mdc-filled-button-container-color: var(--color-accent);
+  --mdc-filled-button-label-text-color: #fff;
+  --mdc-protected-button-container-color: var(--color-accent);
+  --mdc-protected-button-label-text-color: #fff;
+}
+
+.mat-mdc-outlined-button.mat-primary {
+  --mdc-outlined-button-label-text-color: var(--color-accent);
+  --mdc-outlined-button-outline-color: var(--color-accent);
+}
 
 .mat-snack-bar-container {
-  border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
   color: #ffffff;
   font-weight: 500;
 }
@@ -19,7 +76,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 }
 
 .snackbar-info {
-  background-color: #1976d2 !important;
+  background-color: var(--color-accent) !important;
 }
 
 @media print {
@@ -49,7 +106,6 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
     visibility: visible !important;
   }
 
-  /* Crisp, dark output for thermal printers (avoid faint/grey anti-aliased text). */
   .receipt-print-root,
   .receipt-print-root * {
     color: #000 !important;

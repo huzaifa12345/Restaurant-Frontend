@@ -29,3 +29,6 @@ Multi-tenant SaaS Restaurant Management System. This is the Angular 20 frontend;
 
 ## Scope
 Auth, Restaurant settings, Users, Roles, Categories, Menu, POS/Orders, Invoice printing, Sales Reports, Dashboard, Inventory (UOM, RM categories, raw materials + pack sizes, suppliers, purchases, stock), Purchase/Stock reports with Excel/PDF export. Kitchen, Recipe, Accounting, etc. remain future work.
+
+## Design
+Follow [`docs/DESIGN.md`](docs/DESIGN.md) for tokens, symmetry, login split layout, orange brand accent, and Sales nav order (POS last / 5th).

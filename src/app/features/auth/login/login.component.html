@@ -1,14 +1,37 @@
 <div class="login-page">
-  <mat-card class="login-card">
-    <mat-card-header>
-      <mat-card-title>Restaurant Login</mat-card-title>
-      <mat-card-subtitle>No public registration. Ask your admin for access.</mat-card-subtitle>
-    </mat-card-header>
+  <aside class="brand-pane" aria-hidden="false">
+    <div class="brand-glow"></div>
+    <div class="brand-grid"></div>
+    <div class="brand-content">
+      <div class="brand-mark" aria-hidden="true">
+        <span class="mark-dot"></span>
+        <span class="mark-dot"></span>
+        <span class="mark-dot"></span>
+      </div>
+      <p class="brand-badge">Restaurant OS</p>
+      <h1 class="brand-title">Serve faster.<br />Run smarter.</h1>
+      <p class="brand-copy">
+        Multi-tenant POS, menu, inventory, and purchasing — built for busy kitchens and front counters.
+      </p>
+      <div class="brand-bars" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+    </div>
+  </aside>
 
-    <mat-card-content>
+  <section class="form-pane">
+    <div class="login-card">
+      <header class="card-head">
+        <h2 class="card-title">Restaurant <span>Login</span></h2>
+        <p class="card-sub">For invited staff only — no public registration</p>
+      </header>
+
+      <div class="auth-banner">Staff authentication</div>
+
       <form [formGroup]="form" (ngSubmit)="submit()">
         <mat-form-field appearance="outline" class="full">
           <mat-label>Restaurant</mat-label>
+          <mat-icon matPrefix>storefront</mat-icon>
           <input
             matInput
             formControlName="restaurantName"
@@ -28,26 +51,44 @@
 
         <mat-form-field appearance="outline" class="full">
           <mat-label>Username</mat-label>
+          <mat-icon matPrefix>person</mat-icon>
           <input matInput formControlName="username" autocomplete="username" />
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full">
           <mat-label>Password</mat-label>
-          <input matInput type="password" formControlName="password" autocomplete="current-password" />
+          <mat-icon matPrefix>lock</mat-icon>
+          <input
+            matInput
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="current-password"
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="showPassword.set(!showPassword())"
+            [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'">
+            <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
         </mat-form-field>
 
         @if (errorMessage(); as message) {
           <p class="error">{{ message }}</p>
         }
 
-        <button mat-flat-button color="primary" class="full" [disabled]="loading()">
+        <div class="link-row">
+          <span class="muted-hint">Need access? Ask your admin.</span>
+          <a routerLink="/change-password">Change Password</a>
+        </div>
+
+        <button mat-flat-button color="primary" class="full sign-in" [disabled]="loading()">
           {{ loading() ? 'Signing in...' : 'Sign in' }}
         </button>
-
-        <p class="change-password-link">
-          <a routerLink="/change-password">Change Password</a>
-        </p>
       </form>
-    </mat-card-content>
-  </mat-card>
+    </div>
+
+    <app-footer />
+  </section>
 </div>
