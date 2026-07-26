@@ -33,9 +33,24 @@ export const routes: Routes = [
         canActivate: [permissionGuard],
         data: { permissions: ['Orders.Create'] }
       },
+      { path: 'reports', pathMatch: 'full', redirectTo: 'reports/sales' },
       {
-        path: 'reports',
+        path: 'reports/sales',
         component: ReportsComponent,
+        canActivate: [permissionGuard],
+        data: { permissions: ['Reports.View'] }
+      },
+      {
+        path: 'reports/purchases',
+        loadComponent: () =>
+          import('./features/purchase-reports/purchase-reports.component').then(m => m.PurchaseReportsComponent),
+        canActivate: [permissionGuard],
+        data: { permissions: ['Reports.View'] }
+      },
+      {
+        path: 'reports/stock',
+        loadComponent: () =>
+          import('./features/stock-report/stock-report.component').then(m => m.StockReportComponent),
         canActivate: [permissionGuard],
         data: { permissions: ['Reports.View'] }
       },
@@ -50,6 +65,41 @@ export const routes: Routes = [
         component: MenuItemsComponent,
         canActivate: [permissionGuard],
         data: { permissions: ['Menu.View'] }
+      },
+      {
+        path: 'units-of-measure',
+        loadComponent: () =>
+          import('./features/units-of-measure/units-of-measure.component').then(m => m.UnitsOfMeasureComponent),
+        canActivate: [permissionGuard],
+        data: { permissions: ['Inventory.View'] }
+      },
+      {
+        path: 'raw-material-categories',
+        loadComponent: () =>
+          import('./features/raw-material-categories/raw-material-categories.component').then(
+            m => m.RawMaterialCategoriesComponent
+          ),
+        canActivate: [permissionGuard],
+        data: { permissions: ['Inventory.View'] }
+      },
+      {
+        path: 'raw-materials',
+        loadComponent: () =>
+          import('./features/raw-materials/raw-materials.component').then(m => m.RawMaterialsComponent),
+        canActivate: [permissionGuard],
+        data: { permissions: ['Inventory.View'] }
+      },
+      {
+        path: 'suppliers',
+        loadComponent: () => import('./features/suppliers/suppliers.component').then(m => m.SuppliersComponent),
+        canActivate: [permissionGuard],
+        data: { permissions: ['Inventory.View'] }
+      },
+      {
+        path: 'purchases',
+        loadComponent: () => import('./features/purchases/purchases.component').then(m => m.PurchasesComponent),
+        canActivate: [permissionGuard],
+        data: { permissions: ['Purchases.View'] }
       },
       {
         path: 'restaurants',

@@ -374,3 +374,164 @@ export interface DashboardDto {
   topItems: TopSellingItemDto[];
   recentOrders: OrderSummaryDto[];
 }
+
+export interface UnitOfMeasureDto {
+  id: string;
+  name: string;
+  canEdit?: boolean;
+  canDelete?: boolean;
+}
+
+export interface UnitOfMeasureRequest {
+  name: string;
+}
+
+export interface RawMaterialCategoryDto {
+  id: string;
+  name: string;
+  canEdit?: boolean;
+  canDelete?: boolean;
+}
+
+export interface RawMaterialCategoryRequest {
+  name: string;
+}
+
+export interface RawMaterialPackSizeDto {
+  id?: string;
+  uomId: string;
+  uomName?: string;
+  factor: number;
+}
+
+export interface RawMaterialDto {
+  id: string;
+  name: string;
+  barcode: string;
+  categoryId: string;
+  categoryName: string;
+  baseUomId: string;
+  baseUomName: string;
+  isActive: boolean;
+  packSizeCount?: number;
+  packSizes?: RawMaterialPackSizeDto[] | null;
+  canEdit?: boolean;
+  canDelete?: boolean;
+}
+
+export interface RawMaterialRequest {
+  name: string;
+  categoryId: string;
+  baseUomId: string;
+  isActive: boolean;
+}
+
+export interface ReplacePackSizeItemDto {
+  uomId: string;
+  factor: number;
+}
+
+export interface ReplacePackSizesRequest {
+  items: ReplacePackSizeItemDto[];
+}
+
+export interface SupplierDto {
+  id: string;
+  name: string;
+  phone?: string | null;
+  country?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zip?: string | null;
+  isDefault: boolean;
+  canEdit?: boolean;
+  canDelete?: boolean;
+}
+
+export interface SupplierRequest {
+  name: string;
+  phone?: string | null;
+  country?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zip?: string | null;
+}
+
+export enum PurchasePaymentType {
+  Cash = 1,
+  Credit = 2
+}
+
+export interface PurchaseItemDto {
+  id: string;
+  rawMaterialId: string;
+  rawMaterialName: string;
+  uomId: string;
+  uomName: string;
+  quantity: number;
+  unitPrice: number;
+  factorSnapshot: number;
+  baseQuantity: number;
+  lineTotal: number;
+}
+
+export interface PurchaseDto {
+  id: string;
+  invoiceNo: string;
+  purchaseDate: string;
+  supplierId: string;
+  supplierName: string;
+  paymentType: PurchasePaymentType;
+  remarks?: string | null;
+  grandTotal: number;
+  items?: PurchaseItemDto[];
+}
+
+export interface PurchaseLineInputDto {
+  rawMaterialId: string;
+  uomId: string;
+  quantity: number;
+  unitPrice: number;
+}
+
+export interface CreatePurchaseRequest {
+  purchaseDate: string;
+  supplierId: string;
+  paymentType: PurchasePaymentType;
+  remarks?: string | null;
+  items: PurchaseLineInputDto[];
+}
+
+export interface UpdatePurchaseRequest {
+  purchaseDate: string;
+  supplierId: string;
+  paymentType: PurchasePaymentType;
+  remarks?: string | null;
+  items: PurchaseLineInputDto[];
+}
+
+export interface PurchaseReportRowDto {
+  id: string;
+  invoiceNo: string;
+  purchaseDate: string;
+  supplierName: string;
+  paymentType: string;
+  grandTotal: number;
+  lineCount: number;
+}
+
+export interface StockReportRowDto {
+  rawMaterialId: string;
+  rawMaterialName: string;
+  barcode: string;
+  categoryName: string;
+  baseUomName: string;
+  quantityBase: number;
+  packSizesDisplay?: string | null;
+  isActive: boolean;
+}
+
+export interface StockReportDto {
+  hasPackSizes: boolean;
+  items: StockReportRowDto[];
+}

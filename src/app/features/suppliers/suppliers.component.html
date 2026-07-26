@@ -1,0 +1,99 @@
+<section class="panel">
+  <div class="header">
+    <h1>Suppliers</h1>
+    @if (canCreate()) {
+      <button mat-flat-button color="primary" type="button" (click)="startCreate()">Add Supplier</button>
+    }
+  </div>
+
+  <table mat-table [dataSource]="items()" class="table">
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="phone">
+      <th mat-header-cell *matHeaderCellDef>Phone</th>
+      <td mat-cell *matCellDef="let row">{{ row.phone || '—' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="country">
+      <th mat-header-cell *matHeaderCellDef>Country</th>
+      <td mat-cell *matCellDef="let row">{{ row.country || '—' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="city">
+      <th mat-header-cell *matHeaderCellDef>City</th>
+      <td mat-cell *matCellDef="let row">{{ row.city || '—' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="default">
+      <th mat-header-cell *matHeaderCellDef>Default</th>
+      <td mat-cell *matCellDef="let row">{{ row.isDefault ? 'Yes' : 'No' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let row">
+        @if (canUpdate() && row.canEdit !== false) {
+          <button mat-button type="button" (click)="startEdit(row)">Edit</button>
+        }
+        @if (canDelete() && !row.isDefault && row.canDelete !== false) {
+          <button mat-button type="button" (click)="remove(row)">Delete</button>
+        }
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+
+  @if (showForm()) {
+    <form [formGroup]="form" (ngSubmit)="save()" class="form">
+      <h2>{{ editingId() ? 'Edit Supplier' : 'Create Supplier' }}</h2>
+      @if (editingIsDefault()) {
+        <p class="muted hint">Default supplier name cannot be changed.</p>
+      }
+      <div class="grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Name</mat-label>
+          <input matInput formControlName="name" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Phone</mat-label>
+          <input matInput formControlName="phone" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Country</mat-label>
+          <mat-select formControlName="country">
+            <mat-option value="">—</mat-option>
+            @for (country of countries; track country) {
+              <mat-option [value]="country">{{ country }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>City</mat-label>
+          <input matInput formControlName="city" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>State</mat-label>
+          <input matInput formControlName="state" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Zip</mat-label>
+          <input matInput formControlName="zip" />
+        </mat-form-field>
+      </div>
+      <div class="actions">
+        <button mat-stroked-button type="button" (click)="cancelEdit()">Cancel</button>
+        <button mat-flat-button color="primary" type="submit" [disabled]="loading()">Save</button>
+      </div>
+    </form>
+  }
+</section>

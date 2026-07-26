@@ -10,28 +10,56 @@
   <div class="body">
     <aside class="sidebar">
       <mat-nav-list>
-        <a mat-list-item routerLink="/app/dashboard" routerLinkActive="active">Dashboard</a>
-        @if (canUsePos()) {
-          <a mat-list-item routerLink="/app/pos" routerLinkActive="active">POS</a>
+        <div class="nav-section">
+          <div class="nav-section-label">Sales</div>
+          <a mat-list-item routerLink="/app/dashboard" routerLinkActive="active">Dashboard</a>
+          @if (canUsePos()) {
+            <a mat-list-item routerLink="/app/pos" routerLinkActive="active">POS</a>
+          }
+          @if (canViewMenu()) {
+            <a mat-list-item routerLink="/app/categories" routerLinkActive="active">Categories</a>
+            <a mat-list-item routerLink="/app/menu-items" routerLinkActive="active">Menu Items</a>
+          }
+          @if (canViewReports()) {
+            <a mat-list-item routerLink="/app/reports/sales" routerLinkActive="active">Sales Reports</a>
+          }
+        </div>
+
+        @if (showInventoryNav()) {
+          <div class="nav-section">
+            <div class="nav-section-label">Inventory</div>
+            @if (canViewInventory()) {
+              <a mat-list-item routerLink="/app/units-of-measure" routerLinkActive="active">UOMs</a>
+              <a mat-list-item routerLink="/app/raw-material-categories" routerLinkActive="active">RM Categories</a>
+              <a mat-list-item routerLink="/app/raw-materials" routerLinkActive="active">Raw Materials</a>
+              <a mat-list-item routerLink="/app/suppliers" routerLinkActive="active">Suppliers</a>
+            }
+            @if (canViewPurchases()) {
+              <a mat-list-item routerLink="/app/purchases" routerLinkActive="active">Purchases</a>
+            }
+            @if (canViewReports()) {
+              <a mat-list-item routerLink="/app/reports/purchases" routerLinkActive="active">Purchase Reports</a>
+              <a mat-list-item routerLink="/app/reports/stock" routerLinkActive="active">Stock Report</a>
+            }
+          </div>
         }
-        @if (canViewMenu()) {
-          <a mat-list-item routerLink="/app/categories" routerLinkActive="active">Categories</a>
-          <a mat-list-item routerLink="/app/menu-items" routerLinkActive="active">Menu Items</a>
-        }
-        @if (canViewReports()) {
-          <a mat-list-item routerLink="/app/reports" routerLinkActive="active">Reports</a>
-        }
-        @if (canManageRestaurants()) {
-          <a mat-list-item routerLink="/app/restaurants" routerLinkActive="active">Restaurants</a>
-        }
-        @if (canUpdateRestaurant()) {
-          <a mat-list-item routerLink="/app/restaurant" routerLinkActive="active">Restaurant Settings</a>
-        }
-        @if (canManageUsers()) {
-          <a mat-list-item routerLink="/app/users" routerLinkActive="active">Users</a>
-        }
-        @if (canManageRoles()) {
-          <a mat-list-item routerLink="/app/roles" routerLinkActive="active">Roles</a>
+
+        @if (showAdminNav()) {
+          <div class="nav-section">
+            <div class="nav-section-label">Admin</div>
+            @if (canManageUsers()) {
+              <a mat-list-item routerLink="/app/users" routerLinkActive="active">Users</a>
+            }
+            @if (canManageRoles()) {
+              <a mat-list-item routerLink="/app/roles" routerLinkActive="active">Roles</a>
+            }
+            @if (canUpdateRestaurant()) {
+              <a mat-list-item routerLink="/app/restaurant" routerLinkActive="active">Restaurant Settings</a>
+            }
+            @if (canManageRestaurants()) {
+              <a mat-list-item routerLink="/app/restaurants" routerLinkActive="active">Restaurants</a>
+            }
+          </div>
         }
       </mat-nav-list>
     </aside>
