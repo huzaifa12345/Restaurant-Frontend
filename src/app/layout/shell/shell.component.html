@@ -1,71 +1,97 @@
 <div class="shell">
-  <mat-toolbar color="primary" class="topbar">
-    <span class="brand">{{ user()?.restaurantName || 'Restaurant' }}</span>
+  <mat-toolbar class="topbar">
+    <div class="brand-block">
+      <span class="brand-orb" aria-hidden="true"></span>
+      <span class="brand">{{ user()?.restaurantName || 'Restaurant' }}</span>
+    </div>
     <span class="spacer"></span>
-    <span class="user">{{ user()?.username }} ({{ user()?.roleName }})</span>
-    <a mat-button routerLink="/app/change-password" routerLinkActive="active">Change Password</a>
-    <button mat-button type="button" (click)="logout()">Logout</button>
+    <span class="user">{{ user()?.username }} · {{ user()?.roleName }}</span>
+    <a mat-button class="top-link" routerLink="/app/change-password" routerLinkActive="active">Change Password</a>
+    <button mat-stroked-button class="logout-btn" type="button" (click)="logout()">Logout</button>
   </mat-toolbar>
 
   <div class="body">
     <aside class="sidebar">
-      <mat-nav-list>
+      <nav class="nav">
         <div class="nav-section">
-          <div class="nav-section-label">Sales</div>
-          <a mat-list-item routerLink="/app/dashboard" routerLinkActive="active">Dashboard</a>
-          @if (canUsePos()) {
-            <a mat-list-item routerLink="/app/pos" routerLinkActive="active">POS</a>
-          }
-          @if (canViewMenu()) {
-            <a mat-list-item routerLink="/app/categories" routerLinkActive="active">Categories</a>
-            <a mat-list-item routerLink="/app/menu-items" routerLinkActive="active">Menu Items</a>
-          }
-          @if (canViewReports()) {
-            <a mat-list-item routerLink="/app/reports/sales" routerLinkActive="active">Sales Reports</a>
+          <button type="button" class="nav-section-toggle" (click)="toggleSection('sales')">
+            <span>Sales</span>
+            <mat-icon>{{ salesOpen() ? 'expand_less' : 'expand_more' }}</mat-icon>
+          </button>
+          @if (salesOpen()) {
+            <div class="nav-links">
+              <a mat-list-item routerLink="/app/dashboard" routerLinkActive="active">Dashboard</a>
+              @if (canViewMenu()) {
+                <a mat-list-item routerLink="/app/categories" routerLinkActive="active">Categories</a>
+                <a mat-list-item routerLink="/app/menu-items" routerLinkActive="active">Menu Items</a>
+              }
+              @if (canViewReports()) {
+                <a mat-list-item routerLink="/app/reports/sales" routerLinkActive="active">Sales Reports</a>
+              }
+              @if (canUsePos()) {
+                <a mat-list-item routerLink="/app/pos" routerLinkActive="active">POS</a>
+              }
+            </div>
           }
         </div>
 
         @if (showInventoryNav()) {
           <div class="nav-section">
-            <div class="nav-section-label">Inventory</div>
-            @if (canViewInventory()) {
-              <a mat-list-item routerLink="/app/units-of-measure" routerLinkActive="active">UOMs</a>
-              <a mat-list-item routerLink="/app/raw-material-categories" routerLinkActive="active">RM Categories</a>
-              <a mat-list-item routerLink="/app/raw-materials" routerLinkActive="active">Raw Materials</a>
-              <a mat-list-item routerLink="/app/suppliers" routerLinkActive="active">Suppliers</a>
-            }
-            @if (canViewPurchases()) {
-              <a mat-list-item routerLink="/app/purchases" routerLinkActive="active">Purchases</a>
-            }
-            @if (canViewReports()) {
-              <a mat-list-item routerLink="/app/reports/purchases" routerLinkActive="active">Purchase Reports</a>
-              <a mat-list-item routerLink="/app/reports/stock" routerLinkActive="active">Stock Report</a>
+            <button type="button" class="nav-section-toggle" (click)="toggleSection('inventory')">
+              <span>Inventory</span>
+              <mat-icon>{{ inventoryOpen() ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </button>
+            @if (inventoryOpen()) {
+              <div class="nav-links">
+                @if (canViewInventory()) {
+                  <a mat-list-item routerLink="/app/units-of-measure" routerLinkActive="active">UOMs</a>
+                  <a mat-list-item routerLink="/app/raw-material-categories" routerLinkActive="active">RM Categories</a>
+                  <a mat-list-item routerLink="/app/raw-materials" routerLinkActive="active">Raw Materials</a>
+                  <a mat-list-item routerLink="/app/suppliers" routerLinkActive="active">Suppliers</a>
+                }
+                @if (canViewPurchases()) {
+                  <a mat-list-item routerLink="/app/purchases" routerLinkActive="active">Purchases</a>
+                }
+                @if (canViewReports()) {
+                  <a mat-list-item routerLink="/app/reports/purchases" routerLinkActive="active">Purchase Reports</a>
+                  <a mat-list-item routerLink="/app/reports/stock" routerLinkActive="active">Stock Report</a>
+                }
+              </div>
             }
           </div>
         }
 
         @if (showAdminNav()) {
           <div class="nav-section">
-            <div class="nav-section-label">Admin</div>
-            @if (canManageUsers()) {
-              <a mat-list-item routerLink="/app/users" routerLinkActive="active">Users</a>
-            }
-            @if (canManageRoles()) {
-              <a mat-list-item routerLink="/app/roles" routerLinkActive="active">Roles</a>
-            }
-            @if (canUpdateRestaurant()) {
-              <a mat-list-item routerLink="/app/restaurant" routerLinkActive="active">Restaurant Settings</a>
-            }
-            @if (canManageRestaurants()) {
-              <a mat-list-item routerLink="/app/restaurants" routerLinkActive="active">Restaurants</a>
+            <button type="button" class="nav-section-toggle" (click)="toggleSection('admin')">
+              <span>Admin</span>
+              <mat-icon>{{ adminOpen() ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </button>
+            @if (adminOpen()) {
+              <div class="nav-links">
+                @if (canManageUsers()) {
+                  <a mat-list-item routerLink="/app/users" routerLinkActive="active">Users</a>
+                }
+                @if (canManageRoles()) {
+                  <a mat-list-item routerLink="/app/roles" routerLinkActive="active">Roles</a>
+                }
+                @if (canManageRestaurants()) {
+                  <a mat-list-item routerLink="/app/restaurants" routerLinkActive="active">Restaurants</a>
+                }
+                @if (canUpdateRestaurant()) {
+                  <a mat-list-item routerLink="/app/restaurant" routerLinkActive="active">Restaurant Settings</a>
+                }
+              </div>
             }
           </div>
         }
-      </mat-nav-list>
+      </nav>
     </aside>
 
     <main class="content">
       <router-outlet />
     </main>
   </div>
+
+  <app-footer />
 </div>
