@@ -6,6 +6,13 @@
     }
   </div>
 
+  <div class="filters">
+    <mat-form-field appearance="outline">
+      <mat-label>Name</mat-label>
+      <input matInput [formControl]="nameFilter" placeholder="Search by name" />
+    </mat-form-field>
+  </div>
+
   <table mat-table [dataSource]="items()" class="table">
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef>Name</th>
@@ -56,46 +63,62 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
   </table>
 
-  @if (showForm()) {
-    <form [formGroup]="form" (ngSubmit)="save()" class="form">
-      <h2>{{ editingId() ? 'Edit Raw Material' : 'Create Raw Material' }}</h2>
-      <div class="grid">
-        <mat-form-field appearance="outline">
-          <mat-label>Name</mat-label>
-          <input matInput formControlName="name" />
-        </mat-form-field>
+  <div class="pager">
+    <span class="muted">{{ totalCount() }} total · page {{ page() }} / {{ totalPages() || 1 }}</span>
+    <span class="spacer"></span>
+    <button mat-stroked-button type="button" [disabled]="page() <= 1" (click)="prevPage()">Previous</button>
+    <button
+      mat-stroked-button
+      type="button"
+      [disabled]="totalPages() === 0 || page() >= totalPages()"
+      (click)="nextPage()"
+    >
+      Next
+    </button>
+  </div>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Category</mat-label>
-          <mat-select formControlName="categoryId">
-            @for (cat of categories(); track cat.id) {
-              <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+  <ng-template #rawMaterialFormTemplate>
+    <h2 mat-dialog-title>{{ editingId() ? 'Edit Raw Material' : 'Create Raw Material' }}</h2>
+    <mat-dialog-content>
+      <form [formGroup]="form" (ngSubmit)="save()" class="form">
+        <div class="grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Name</mat-label>
+            <input matInput formControlName="name" />
+          </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Base UOM</mat-label>
-          <mat-select formControlName="baseUomId">
-            @for (uom of uoms(); track uom.id) {
-              <mat-option [value]="uom.id">{{ uom.name }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Category</mat-label>
+            <mat-select formControlName="categoryId">
+              @for (cat of categories(); track cat.id) {
+                <mat-option [value]="cat.id">{{ cat.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Barcode</mat-label>
-          <input matInput formControlName="barcode" readonly />
-        </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Base UOM</mat-label>
+            <mat-select formControlName="baseUomId">
+              @for (uom of uoms(); track uom.id) {
+                <mat-option [value]="uom.id">{{ uom.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
 
-        <mat-slide-toggle formControlName="isActive">Active</mat-slide-toggle>
-      </div>
-      <div class="actions">
-        <button mat-stroked-button type="button" (click)="cancelEdit()">Cancel</button>
-        <button mat-flat-button color="primary" type="submit" [disabled]="loading()">Save</button>
-      </div>
-    </form>
-  }
+          <mat-form-field appearance="outline">
+            <mat-label>Barcode</mat-label>
+            <input matInput formControlName="barcode" readonly />
+          </mat-form-field>
+
+          <mat-slide-toggle formControlName="isActive">Active</mat-slide-toggle>
+        </div>
+      </form>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-stroked-button type="button" (click)="cancelEdit()">Cancel</button>
+      <button mat-flat-button color="primary" type="button" [disabled]="loading()" (click)="save()">Save</button>
+    </mat-dialog-actions>
+  </ng-template>
 
   <ng-template #packSizesTemplate>
     <h2 mat-dialog-title>Pack Sizes — {{ packMaterial()?.name }}</h2>

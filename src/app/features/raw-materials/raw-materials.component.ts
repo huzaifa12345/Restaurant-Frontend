@@ -1,5 +1,5 @@
 import { Component, OnInit, TemplateRef, ViewChild, computed, inject, signal } from '@angular/core';
-import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTableModule } from '@angular/material/table';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import {
   RawMaterialCategoryDto,
   RawMaterialDto,
@@ -47,15 +48,21 @@ export class RawMaterialsComponent implements OnInit {
   readonly uoms = signal<UnitOfMeasureDto[]>([]);
   readonly loading = signal(false);
   readonly editingId = signal<string | null>(null);
-  readonly showForm = signal(false);
   readonly packMaterial = signal<RawMaterialDto | null>(null);
+  readonly page = signal(1);
+  readonly pageSize = 20;
+  readonly totalCount = signal(0);
+  readonly totalPages = signal(0);
+  readonly nameFilter = new FormControl('', { nonNullable: true });
 
   readonly canCreate = computed(() => this.auth.hasPermission('Inventory.Create'));
   readonly canUpdate = computed(() => this.auth.hasPermission('Inventory.Update'));
   readonly canDelete = computed(() => this.auth.hasPermission('Inventory.Delete'));
   readonly displayedColumns = ['name', 'barcode', 'category', 'baseUom', 'packs', 'active', 'actions'];
 
+  @ViewChild('rawMaterialFormTemplate') private readonly rawMaterialFormTemplate?: TemplateRef<unknown>;
   @ViewChild('packSizesTemplate') private readonly packSizesTemplate?: TemplateRef<unknown>;
+  private activeDialogRef: MatDialogRef<unknown> | null = null;
   private packDialogRef: MatDialogRef<unknown> | null = null;
 
   readonly form = this.fb.nonNullable.group({
@@ -75,24 +82,37 @@ export class RawMaterialsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.api.getRawMaterialCategories().subscribe({
-      next: items => this.categories.set(items),
+    this.api.getRawMaterialCategories({ page: 1, pageSize: 100 }).subscribe({
+      next: result => this.categories.set(result.items),
       error: (err: { error?: { detail?: string } }) =>
         this.notification.error(err?.error?.detail ?? 'Failed to load categories.')
     });
-    this.api.getUnitsOfMeasure().subscribe({
-      next: items => this.uoms.set(items),
+    this.api.getUnitsOfMeasure({ page: 1, pageSize: 100 }).subscribe({
+      next: result => this.uoms.set(result.items),
       error: (err: { error?: { detail?: string } }) =>
         this.notification.error(err?.error?.detail ?? 'Failed to load units of measure.')
+    });
+    this.nameFilter.valueChanges.pipe(debounceTime(300), distinctUntilChanged()).subscribe(() => {
+      this.page.set(1);
+      this.reload(1);
     });
     this.reload();
   }
 
-  reload(): void {
+  reload(page = this.page()): void {
     this.loading.set(true);
-    this.api.getRawMaterials().subscribe({
-      next: items => {
-        this.items.set(items);
+    this.api
+      .getRawMaterials({
+        page,
+        pageSize: this.pageSize,
+        name: this.nameFilter.value.trim() || null
+      })
+      .subscribe({
+      next: result => {
+        this.items.set(result.items);
+        this.page.set(result.page);
+        this.totalCount.set(result.totalCount);
+        this.totalPages.set(result.totalPages);
         this.loading.set(false);
       },
       error: (err: { error?: { detail?: string } }) => {
@@ -102,9 +122,20 @@ export class RawMaterialsComponent implements OnInit {
     });
   }
 
+  prevPage(): void {
+    if (this.page() > 1) {
+      this.reload(this.page() - 1);
+    }
+  }
+
+  nextPage(): void {
+    if (this.totalPages() > 0 && this.page() < this.totalPages()) {
+      this.reload(this.page() + 1);
+    }
+  }
+
   startCreate(): void {
     this.editingId.set(null);
-    this.showForm.set(true);
     this.form.reset({
       name: '',
       categoryId: this.categories()[0]?.id ?? '',
@@ -112,6 +143,7 @@ export class RawMaterialsComponent implements OnInit {
       barcode: '',
       isActive: true
     });
+    this.openFormDialog();
     this.api.getNextRawMaterialBarcode().subscribe({
       next: result => this.form.patchValue({ barcode: result.barcode }),
       error: (err: { error?: { detail?: string } }) =>
@@ -124,7 +156,6 @@ export class RawMaterialsComponent implements OnInit {
       return;
     }
     this.editingId.set(item.id);
-    this.showForm.set(true);
     this.form.reset({
       name: item.name,
       categoryId: item.categoryId,
@@ -132,12 +163,12 @@ export class RawMaterialsComponent implements OnInit {
       barcode: item.barcode,
       isActive: item.isActive
     });
+    this.openFormDialog();
   }
 
   cancelEdit(): void {
-    this.editingId.set(null);
-    this.showForm.set(false);
-    this.form.reset();
+    this.activeDialogRef?.close();
+    this.resetDialogState();
   }
 
   save(): void {
@@ -278,12 +309,35 @@ export class RawMaterialsComponent implements OnInit {
       }
       this.api.deleteRawMaterial(item.id).subscribe({
         next: () => {
-          this.reload();
+          const nextPage = this.items().length <= 1 ? Math.max(1, this.page() - 1) : this.page();
+          this.reload(nextPage);
           this.notification.success('Raw material deleted.');
         },
         error: (err: { error?: { detail?: string } }) =>
           this.notification.error(err?.error?.detail ?? 'Failed to delete raw material.')
       });
     });
+  }
+
+  private openFormDialog(): void {
+    if (!this.rawMaterialFormTemplate) {
+      return;
+    }
+
+    this.activeDialogRef?.close();
+    this.activeDialogRef = this.dialog.open(this.rawMaterialFormTemplate, {
+      width: '640px',
+      autoFocus: false
+    });
+
+    this.activeDialogRef.afterClosed().subscribe(() => {
+      this.activeDialogRef = null;
+      this.resetDialogState();
+    });
+  }
+
+  private resetDialogState(): void {
+    this.editingId.set(null);
+    this.form.reset();
   }
 }

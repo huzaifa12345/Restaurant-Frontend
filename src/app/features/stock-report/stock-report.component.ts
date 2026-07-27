@@ -44,12 +44,12 @@ export class StockReportComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.api.getRawMaterialCategories().subscribe({
-      next: items => this.categories.set(items),
+    this.api.getRawMaterialCategories({ page: 1, pageSize: 100 }).subscribe({
+      next: result => this.categories.set(result.items),
       error: () => this.categories.set([])
     });
-    this.api.getRawMaterials().subscribe({
-      next: items => this.rawMaterials.set(items),
+    this.api.getRawMaterials({ page: 1, pageSize: 100 }).subscribe({
+      next: result => this.rawMaterials.set(result.items),
       error: () => this.rawMaterials.set([])
     });
     this.load();

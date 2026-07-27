@@ -44,12 +44,12 @@ export class PurchaseReportsComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.api.getSuppliers().subscribe({
-      next: items => this.suppliers.set(items),
+    this.api.getSuppliers({ page: 1, pageSize: 100 }).subscribe({
+      next: result => this.suppliers.set(result.items),
       error: () => this.suppliers.set([])
     });
-    this.api.getRawMaterials().subscribe({
-      next: items => this.rawMaterials.set(items),
+    this.api.getRawMaterials({ page: 1, pageSize: 100 }).subscribe({
+      next: result => this.rawMaterials.set(result.items),
       error: () => this.rawMaterials.set([])
     });
     this.load();

@@ -149,9 +149,9 @@ export class PosComponent implements OnInit {
       }
     });
 
-    this.api.getCategories(true).subscribe({
-      next: cats => {
-        this.categories.set(cats);
+    this.api.getCategories({ activeOnly: true, page: 1, pageSize: 100 }).subscribe({
+      next: result => {
+        this.categories.set(result.items);
         this.loadItems();
       },
       error: (err: { error?: { detail?: string } }) =>

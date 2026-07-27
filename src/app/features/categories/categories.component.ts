@@ -1,5 +1,5 @@
 import { Component, OnInit, TemplateRef, ViewChild, computed, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -7,6 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -42,6 +43,11 @@ export class CategoriesComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly editingId = signal<string | null>(null);
   readonly imagePreview = signal<string | null>(null);
+  readonly page = signal(1);
+  readonly pageSize = 20;
+  readonly totalCount = signal(0);
+  readonly totalPages = signal(0);
+  readonly nameFilter = new FormControl('', { nonNullable: true });
 
   readonly canCreate = computed(() => this.auth.hasPermission('Menu.Create'));
   readonly canUpdate = computed(() => this.auth.hasPermission('Menu.Update'));
@@ -59,24 +65,49 @@ export class CategoriesComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.nameFilter.valueChanges.pipe(debounceTime(300), distinctUntilChanged()).subscribe(() => {
+      this.page.set(1);
+      this.reload(1);
+    });
     this.reload();
   }
 
-  reload(): void {
+  reload(page = this.page()): void {
     this.loading.set(true);
     this.error.set(null);
-    this.api.getCategories().subscribe({
-      next: items => {
-        this.categories.set(items);
-        this.loading.set(false);
-      },
-      error: (err: { error?: { detail?: string } }) => {
-        this.loading.set(false);
-        const message = err?.error?.detail ?? 'Failed to load categories.';
-        this.error.set(message);
-        this.notification.error(message);
-      }
-    });
+    this.api
+      .getCategories({
+        page,
+        pageSize: this.pageSize,
+        name: this.nameFilter.value.trim() || null
+      })
+      .subscribe({
+        next: result => {
+          this.categories.set(result.items);
+          this.page.set(result.page);
+          this.totalCount.set(result.totalCount);
+          this.totalPages.set(result.totalPages);
+          this.loading.set(false);
+        },
+        error: (err: { error?: { detail?: string } }) => {
+          this.loading.set(false);
+          const message = err?.error?.detail ?? 'Failed to load categories.';
+          this.error.set(message);
+          this.notification.error(message);
+        }
+      });
+  }
+
+  prevPage(): void {
+    if (this.page() > 1) {
+      this.reload(this.page() - 1);
+    }
+  }
+
+  nextPage(): void {
+    if (this.totalPages() > 0 && this.page() < this.totalPages()) {
+      this.reload(this.page() + 1);
+    }
   }
 
   mediaUrl(path?: string | null): string | null {
@@ -214,7 +245,8 @@ export class CategoriesComponent implements OnInit {
 
       this.api.deleteCategory(category.id).subscribe({
         next: () => {
-          this.reload();
+          const nextPage = this.categories().length <= 1 ? Math.max(1, this.page() - 1) : this.page();
+          this.reload(nextPage);
           this.notification.success('Category deleted successfully.');
         },
         error: (err: { error?: { detail?: string } }) => {
