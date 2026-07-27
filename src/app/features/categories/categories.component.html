@@ -6,6 +6,13 @@
     }
   </div>
 
+  <div class="filters">
+    <mat-form-field appearance="outline">
+      <mat-label>Name</mat-label>
+      <input matInput [formControl]="nameFilter" placeholder="Search by name" />
+    </mat-form-field>
+  </div>
+
   <table mat-table [dataSource]="categories()" class="table">
     <ng-container matColumnDef="image">
       <th mat-header-cell *matHeaderCellDef>Image</th>
@@ -48,6 +55,20 @@
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
   </table>
+
+  <div class="pager">
+    <span class="muted">{{ totalCount() }} total · page {{ page() }} / {{ totalPages() || 1 }}</span>
+    <span class="spacer"></span>
+    <button mat-stroked-button type="button" [disabled]="page() <= 1" (click)="prevPage()">Previous</button>
+    <button
+      mat-stroked-button
+      type="button"
+      [disabled]="totalPages() === 0 || page() >= totalPages()"
+      (click)="nextPage()"
+    >
+      Next
+    </button>
+  </div>
 
   <ng-template #categoryFormTemplate>
     <h2 mat-dialog-title>{{ editingId() ? 'Edit Category' : 'Create Category' }}</h2>

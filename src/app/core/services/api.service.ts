@@ -140,9 +140,17 @@ export class ApiService {
     return this.http.delete<void>(`${environment.apiUrl}/roles/${id}`);
   }
 
-  getCategories(activeOnly = false): Observable<CategoryDto[]> {
-    const params = new HttpParams().set('activeOnly', String(activeOnly));
-    return this.http.get<CategoryDto[]>(`${environment.apiUrl}/categories`, { params });
+  getCategories(
+    query: { page?: number; pageSize?: number; activeOnly?: boolean; name?: string | null } = {}
+  ): Observable<PagedResultDto<CategoryDto>> {
+    let params = new HttpParams()
+      .set('page', String(query.page ?? 1))
+      .set('pageSize', String(query.pageSize ?? 20))
+      .set('activeOnly', String(query.activeOnly ?? false));
+    if (query.name?.trim()) {
+      params = params.set('name', query.name.trim());
+    }
+    return this.http.get<PagedResultDto<CategoryDto>>(`${environment.apiUrl}/categories`, { params });
   }
 
   createCategory(body: CategoryRequest): Observable<CategoryDto> {
@@ -157,12 +165,26 @@ export class ApiService {
     return this.http.delete<void>(`${environment.apiUrl}/categories/${id}`);
   }
 
-  getMenuItems(categoryId?: string | null, activeOnly = false): Observable<MenuItemDto[]> {
-    let params = new HttpParams().set('activeOnly', String(activeOnly));
-    if (categoryId) {
-      params = params.set('categoryId', categoryId);
+  getMenuItems(
+    query: {
+      page?: number;
+      pageSize?: number;
+      categoryId?: string | null;
+      activeOnly?: boolean;
+      name?: string | null;
+    } = {}
+  ): Observable<PagedResultDto<MenuItemDto>> {
+    let params = new HttpParams()
+      .set('page', String(query.page ?? 1))
+      .set('pageSize', String(query.pageSize ?? 20))
+      .set('activeOnly', String(query.activeOnly ?? false));
+    if (query.categoryId) {
+      params = params.set('categoryId', query.categoryId);
     }
-    return this.http.get<MenuItemDto[]>(`${environment.apiUrl}/menu-items`, { params });
+    if (query.name?.trim()) {
+      params = params.set('name', query.name.trim());
+    }
+    return this.http.get<PagedResultDto<MenuItemDto>>(`${environment.apiUrl}/menu-items`, { params });
   }
 
   getPosMenuItems(categoryId?: string | null): Observable<MenuItemDto[]> {
@@ -303,8 +325,16 @@ export class ApiService {
     });
   }
 
-  getUnitsOfMeasure(): Observable<UnitOfMeasureDto[]> {
-    return this.http.get<UnitOfMeasureDto[]>(`${environment.apiUrl}/units-of-measure`);
+  getUnitsOfMeasure(
+    query: { page?: number; pageSize?: number; name?: string | null } = {}
+  ): Observable<PagedResultDto<UnitOfMeasureDto>> {
+    let params = new HttpParams()
+      .set('page', String(query.page ?? 1))
+      .set('pageSize', String(query.pageSize ?? 20));
+    if (query.name?.trim()) {
+      params = params.set('name', query.name.trim());
+    }
+    return this.http.get<PagedResultDto<UnitOfMeasureDto>>(`${environment.apiUrl}/units-of-measure`, { params });
   }
 
   createUnitOfMeasure(body: UnitOfMeasureRequest): Observable<UnitOfMeasureDto> {
@@ -319,8 +349,18 @@ export class ApiService {
     return this.http.delete<void>(`${environment.apiUrl}/units-of-measure/${id}`);
   }
 
-  getRawMaterialCategories(): Observable<RawMaterialCategoryDto[]> {
-    return this.http.get<RawMaterialCategoryDto[]>(`${environment.apiUrl}/raw-material-categories`);
+  getRawMaterialCategories(
+    query: { page?: number; pageSize?: number; name?: string | null } = {}
+  ): Observable<PagedResultDto<RawMaterialCategoryDto>> {
+    let params = new HttpParams()
+      .set('page', String(query.page ?? 1))
+      .set('pageSize', String(query.pageSize ?? 20));
+    if (query.name?.trim()) {
+      params = params.set('name', query.name.trim());
+    }
+    return this.http.get<PagedResultDto<RawMaterialCategoryDto>>(`${environment.apiUrl}/raw-material-categories`, {
+      params
+    });
   }
 
   createRawMaterialCategory(body: RawMaterialCategoryRequest): Observable<RawMaterialCategoryDto> {
@@ -335,12 +375,26 @@ export class ApiService {
     return this.http.delete<void>(`${environment.apiUrl}/raw-material-categories/${id}`);
   }
 
-  getRawMaterials(categoryId?: string | null, activeOnly = false): Observable<RawMaterialDto[]> {
-    let params = new HttpParams().set('activeOnly', String(activeOnly));
-    if (categoryId) {
-      params = params.set('categoryId', categoryId);
+  getRawMaterials(
+    query: {
+      page?: number;
+      pageSize?: number;
+      categoryId?: string | null;
+      activeOnly?: boolean;
+      name?: string | null;
+    } = {}
+  ): Observable<PagedResultDto<RawMaterialDto>> {
+    let params = new HttpParams()
+      .set('page', String(query.page ?? 1))
+      .set('pageSize', String(query.pageSize ?? 20))
+      .set('activeOnly', String(query.activeOnly ?? false));
+    if (query.categoryId) {
+      params = params.set('categoryId', query.categoryId);
     }
-    return this.http.get<RawMaterialDto[]>(`${environment.apiUrl}/raw-materials`, { params });
+    if (query.name?.trim()) {
+      params = params.set('name', query.name.trim());
+    }
+    return this.http.get<PagedResultDto<RawMaterialDto>>(`${environment.apiUrl}/raw-materials`, { params });
   }
 
   getRawMaterial(id: string): Observable<RawMaterialDto> {
@@ -367,8 +421,16 @@ export class ApiService {
     return this.http.delete<void>(`${environment.apiUrl}/raw-materials/${id}`);
   }
 
-  getSuppliers(): Observable<SupplierDto[]> {
-    return this.http.get<SupplierDto[]>(`${environment.apiUrl}/suppliers`);
+  getSuppliers(
+    query: { page?: number; pageSize?: number; name?: string | null } = {}
+  ): Observable<PagedResultDto<SupplierDto>> {
+    let params = new HttpParams()
+      .set('page', String(query.page ?? 1))
+      .set('pageSize', String(query.pageSize ?? 20));
+    if (query.name?.trim()) {
+      params = params.set('name', query.name.trim());
+    }
+    return this.http.get<PagedResultDto<SupplierDto>>(`${environment.apiUrl}/suppliers`, { params });
   }
 
   createSupplier(body: SupplierRequest): Observable<SupplierDto> {
@@ -383,18 +445,32 @@ export class ApiService {
     return this.http.delete<void>(`${environment.apiUrl}/suppliers/${id}`);
   }
 
-  getPurchases(from?: string | null, to?: string | null, supplierId?: string | null): Observable<PurchaseDto[]> {
-    let params = new HttpParams();
-    if (from) {
-      params = params.set('from', from);
+  getPurchases(
+    query: {
+      page?: number;
+      pageSize?: number;
+      from?: string | null;
+      to?: string | null;
+      supplierId?: string | null;
+      name?: string | null;
+    } = {}
+  ): Observable<PagedResultDto<PurchaseDto>> {
+    let params = new HttpParams()
+      .set('page', String(query.page ?? 1))
+      .set('pageSize', String(query.pageSize ?? 20));
+    if (query.from) {
+      params = params.set('from', query.from);
     }
-    if (to) {
-      params = params.set('to', to);
+    if (query.to) {
+      params = params.set('to', query.to);
     }
-    if (supplierId) {
-      params = params.set('supplierId', supplierId);
+    if (query.supplierId) {
+      params = params.set('supplierId', query.supplierId);
     }
-    return this.http.get<PurchaseDto[]>(`${environment.apiUrl}/purchases`, { params });
+    if (query.name?.trim()) {
+      params = params.set('name', query.name.trim());
+    }
+    return this.http.get<PagedResultDto<PurchaseDto>>(`${environment.apiUrl}/purchases`, { params });
   }
 
   getPurchase(id: string): Observable<PurchaseDto> {

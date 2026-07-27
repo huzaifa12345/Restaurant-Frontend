@@ -19,6 +19,11 @@
         }
       </mat-select>
     </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Name</mat-label>
+      <input matInput [formControl]="nameFilter" placeholder="Search by name" />
+    </mat-form-field>
   </div>
 
   <div class="cards">
@@ -49,6 +54,20 @@
     } @empty {
       <p class="muted">No menu items yet. Create a category first, then add burgers/fries/etc.</p>
     }
+  </div>
+
+  <div class="pager">
+    <span class="muted">{{ totalCount() }} total · page {{ page() }} / {{ totalPages() || 1 }}</span>
+    <span class="spacer"></span>
+    <button mat-stroked-button type="button" [disabled]="page() <= 1" (click)="prevPage()">Previous</button>
+    <button
+      mat-stroked-button
+      type="button"
+      [disabled]="totalPages() === 0 || page() >= totalPages()"
+      (click)="nextPage()"
+    >
+      Next
+    </button>
   </div>
 
   <ng-template #menuItemFormTemplate>

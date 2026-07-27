@@ -11,8 +11,31 @@
   margin-bottom: 1rem;
 }
 
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.filters mat-form-field {
+  min-width: 240px;
+}
+
 .table {
   width: 100%;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.pager .spacer {
+  flex: 1 1 auto;
 }
 
 .thumb,

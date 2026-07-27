@@ -1,12 +1,13 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, OnInit, TemplateRef, ViewChild, computed, inject, signal } from '@angular/core';
+import { FormArray, FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import {
   PurchaseDto,
   PurchasePaymentType,
@@ -54,8 +55,12 @@ export class PurchasesComponent implements OnInit {
   readonly lineUoms = signal<Record<number, LineUomOption[]>>({});
   readonly loading = signal(false);
   readonly editingId = signal<string | null>(null);
-  readonly showForm = signal(false);
   readonly invoiceNo = signal('');
+  readonly page = signal(1);
+  readonly pageSize = 20;
+  readonly totalCount = signal(0);
+  readonly totalPages = signal(0);
+  readonly nameFilter = new FormControl('', { nonNullable: true });
 
   readonly canCreate = computed(() => this.auth.hasPermission('Purchases.Create'));
   readonly canUpdate = computed(() => this.auth.hasPermission('Purchases.Update'));
@@ -65,6 +70,9 @@ export class PurchasesComponent implements OnInit {
     { value: PurchasePaymentType.Credit, label: 'Credit' }
   ];
   readonly displayedColumns = ['invoiceNo', 'date', 'supplier', 'payment', 'total', 'actions'];
+
+  @ViewChild('purchaseFormTemplate') private readonly purchaseFormTemplate?: TemplateRef<unknown>;
+  private activeDialogRef: MatDialogRef<unknown> | null = null;
 
   readonly form = this.fb.nonNullable.group({
     purchaseDate: [this.toInputDate(new Date()), Validators.required],
@@ -79,32 +87,44 @@ export class PurchasesComponent implements OnInit {
   }
 
   readonly grandTotal = computed(() => {
-    // Depend on form value changes via signal refresh on valueChanges
     return this.lineTotalsSignal().reduce((sum, n) => sum + n, 0);
   });
 
   private readonly lineTotalsSignal = signal<number[]>([]);
 
   ngOnInit(): void {
-    this.api.getSuppliers().subscribe({
-      next: items => this.suppliers.set(items),
+    this.api.getSuppliers({ page: 1, pageSize: 100 }).subscribe({
+      next: result => this.suppliers.set(result.items),
       error: (err: { error?: { detail?: string } }) =>
         this.notification.error(err?.error?.detail ?? 'Failed to load suppliers.')
     });
-    this.api.getRawMaterials(null, true).subscribe({
-      next: items => this.rawMaterials.set(items),
+    this.api.getRawMaterials({ page: 1, pageSize: 100, activeOnly: true }).subscribe({
+      next: result => this.rawMaterials.set(result.items),
       error: (err: { error?: { detail?: string } }) =>
         this.notification.error(err?.error?.detail ?? 'Failed to load raw materials.')
     });
     this.form.valueChanges.subscribe(() => this.refreshLineTotals());
+    this.nameFilter.valueChanges.pipe(debounceTime(300), distinctUntilChanged()).subscribe(() => {
+      this.page.set(1);
+      this.reload(1);
+    });
     this.reload();
   }
 
-  reload(): void {
+  reload(page = this.page()): void {
     this.loading.set(true);
-    this.api.getPurchases().subscribe({
-      next: items => {
-        this.purchases.set(items);
+    this.api
+      .getPurchases({
+        page,
+        pageSize: this.pageSize,
+        name: this.nameFilter.value.trim() || null
+      })
+      .subscribe({
+      next: result => {
+        this.purchases.set(result.items);
+        this.page.set(result.page);
+        this.totalCount.set(result.totalCount);
+        this.totalPages.set(result.totalPages);
         this.loading.set(false);
       },
       error: (err: { error?: { detail?: string } }) => {
@@ -114,6 +134,18 @@ export class PurchasesComponent implements OnInit {
     });
   }
 
+  prevPage(): void {
+    if (this.page() > 1) {
+      this.reload(this.page() - 1);
+    }
+  }
+
+  nextPage(): void {
+    if (this.totalPages() > 0 && this.page() < this.totalPages()) {
+      this.reload(this.page() + 1);
+    }
+  }
+
   paymentLabel(type: PurchasePaymentType): string {
     return type === PurchasePaymentType.Credit ? 'Credit' : 'Cash';
   }
@@ -121,7 +153,6 @@ export class PurchasesComponent implements OnInit {
   startCreate(): void {
     this.editingId.set(null);
     this.invoiceNo.set('(assigned on save)');
-    this.showForm.set(true);
     const defaultSupplier = this.suppliers().find(s => s.isDefault) ?? this.suppliers()[0];
     this.form.reset({
       purchaseDate: this.toInputDate(new Date()),
@@ -133,6 +164,7 @@ export class PurchasesComponent implements OnInit {
     this.lineUoms.set({});
     this.addLine();
     this.refreshLineTotals();
+    this.openFormDialog();
   }
 
   startEdit(row: PurchaseDto): void {
@@ -142,7 +174,6 @@ export class PurchasesComponent implements OnInit {
         this.loading.set(false);
         this.editingId.set(purchase.id);
         this.invoiceNo.set(purchase.invoiceNo);
-        this.showForm.set(true);
         this.form.reset({
           purchaseDate: purchase.purchaseDate,
           supplierId: purchase.supplierId,
@@ -155,6 +186,7 @@ export class PurchasesComponent implements OnInit {
         if (lines.length === 0) {
           this.addLine();
           this.refreshLineTotals();
+          this.openFormDialog();
           return;
         }
         lines.forEach((line, index) => {
@@ -169,6 +201,7 @@ export class PurchasesComponent implements OnInit {
           this.loadUomsForLine(index, line.rawMaterialId, line.uomId, false);
         });
         this.refreshLineTotals();
+        this.openFormDialog();
       },
       error: (err: { error?: { detail?: string } }) => {
         this.loading.set(false);
@@ -178,13 +211,8 @@ export class PurchasesComponent implements OnInit {
   }
 
   cancelEdit(): void {
-    this.editingId.set(null);
-    this.invoiceNo.set('');
-    this.showForm.set(false);
-    this.items.clear();
-    this.lineUoms.set({});
-    this.form.reset();
-    this.refreshLineTotals();
+    this.activeDialogRef?.close();
+    this.resetDialogState();
   }
 
   addLine(): void {
@@ -299,13 +327,41 @@ export class PurchasesComponent implements OnInit {
       }
       this.api.deletePurchase(row.id).subscribe({
         next: () => {
-          this.reload();
+          const nextPage = this.purchases().length <= 1 ? Math.max(1, this.page() - 1) : this.page();
+          this.reload(nextPage);
           this.notification.success('Purchase deleted.');
         },
         error: (err: { error?: { detail?: string } }) =>
           this.notification.error(err?.error?.detail ?? 'Failed to delete purchase.')
       });
     });
+  }
+
+  private openFormDialog(): void {
+    if (!this.purchaseFormTemplate) {
+      return;
+    }
+
+    this.activeDialogRef?.close();
+    this.activeDialogRef = this.dialog.open(this.purchaseFormTemplate, {
+      width: '900px',
+      maxWidth: '95vw',
+      autoFocus: false
+    });
+
+    this.activeDialogRef.afterClosed().subscribe(() => {
+      this.activeDialogRef = null;
+      this.resetDialogState();
+    });
+  }
+
+  private resetDialogState(): void {
+    this.editingId.set(null);
+    this.invoiceNo.set('');
+    this.items.clear();
+    this.lineUoms.set({});
+    this.form.reset();
+    this.refreshLineTotals();
   }
 
   private loadUomsForLine(

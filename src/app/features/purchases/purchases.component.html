@@ -6,6 +6,13 @@
     }
   </div>
 
+  <div class="filters">
+    <mat-form-field appearance="outline">
+      <mat-label>Name</mat-label>
+      <input matInput [formControl]="nameFilter" placeholder="Search invoice or supplier" />
+    </mat-form-field>
+  </div>
+
   <table mat-table [dataSource]="purchases()" class="table">
     <ng-container matColumnDef="invoiceNo">
       <th mat-header-cell *matHeaderCellDef>Invoice</th>
@@ -48,95 +55,109 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
   </table>
 
-  @if (showForm()) {
-    <form [formGroup]="form" (ngSubmit)="save()" class="form">
-      <h2>{{ editingId() ? 'Edit Purchase' : 'Create Purchase' }}</h2>
+  <div class="pager">
+    <span class="muted">{{ totalCount() }} total · page {{ page() }} / {{ totalPages() || 1 }}</span>
+    <span class="spacer"></span>
+    <button mat-stroked-button type="button" [disabled]="page() <= 1" (click)="prevPage()">Previous</button>
+    <button
+      mat-stroked-button
+      type="button"
+      [disabled]="totalPages() === 0 || page() >= totalPages()"
+      (click)="nextPage()"
+    >
+      Next
+    </button>
+  </div>
 
-      <div class="grid">
-        <mat-form-field appearance="outline">
-          <mat-label>Invoice No</mat-label>
-          <input matInput [value]="invoiceNo()" readonly />
-        </mat-form-field>
+  <ng-template #purchaseFormTemplate>
+    <h2 mat-dialog-title>{{ editingId() ? 'Edit Purchase' : 'Create Purchase' }}</h2>
+    <mat-dialog-content>
+      <form [formGroup]="form" (ngSubmit)="save()" class="form">
+        <div class="grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Invoice No</mat-label>
+            <input matInput [value]="invoiceNo()" readonly />
+          </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Purchase Date</mat-label>
-          <input matInput type="date" formControlName="purchaseDate" />
-        </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Purchase Date</mat-label>
+            <input matInput type="date" formControlName="purchaseDate" />
+          </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Supplier</mat-label>
-          <mat-select formControlName="supplierId">
-            @for (supplier of suppliers(); track supplier.id) {
-              <mat-option [value]="supplier.id">{{ supplier.name }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Supplier</mat-label>
+            <mat-select formControlName="supplierId">
+              @for (supplier of suppliers(); track supplier.id) {
+                <mat-option [value]="supplier.id">{{ supplier.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Payment Type</mat-label>
-          <mat-select formControlName="paymentType">
-            @for (type of paymentTypes; track type.value) {
-              <mat-option [value]="type.value">{{ type.label }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Payment Type</mat-label>
+            <mat-select formControlName="paymentType">
+              @for (type of paymentTypes; track type.value) {
+                <mat-option [value]="type.value">{{ type.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full">
-          <mat-label>Remarks</mat-label>
-          <input matInput formControlName="remarks" />
-        </mat-form-field>
-      </div>
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>Remarks</mat-label>
+            <input matInput formControlName="remarks" />
+          </mat-form-field>
+        </div>
 
-      <div class="lines-header">
-        <h3>Lines</h3>
-        <button mat-stroked-button type="button" (click)="addLine()">Add Line</button>
-      </div>
+        <div class="lines-header">
+          <h3>Lines</h3>
+          <button mat-stroked-button type="button" (click)="addLine()">Add Line</button>
+        </div>
 
-      <div formArrayName="items" class="lines">
-        @for (line of items.controls; track $index; let i = $index) {
-          <div class="line" [formGroupName]="i">
-            <mat-form-field appearance="outline">
-              <mat-label>Raw Material</mat-label>
-              <mat-select formControlName="rawMaterialId" (selectionChange)="onRawMaterialChange(i)">
-                @for (rm of rawMaterials(); track rm.id) {
-                  <mat-option [value]="rm.id">{{ rm.name }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
+        <div formArrayName="items" class="lines">
+          @for (line of items.controls; track $index; let i = $index) {
+            <div class="line" [formGroupName]="i">
+              <mat-form-field appearance="outline">
+                <mat-label>Raw Material</mat-label>
+                <mat-select formControlName="rawMaterialId" (selectionChange)="onRawMaterialChange(i)">
+                  @for (rm of rawMaterials(); track rm.id) {
+                    <mat-option [value]="rm.id">{{ rm.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
 
-            <mat-form-field appearance="outline">
-              <mat-label>UOM</mat-label>
-              <mat-select formControlName="uomId">
-                @for (uom of uomOptions(i); track uom.uomId) {
-                  <mat-option [value]="uom.uomId">{{ uom.uomName }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>UOM</mat-label>
+                <mat-select formControlName="uomId">
+                  @for (uom of uomOptions(i); track uom.uomId) {
+                    <mat-option [value]="uom.uomId">{{ uom.uomName }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
 
-            <mat-form-field appearance="outline">
-              <mat-label>Qty</mat-label>
-              <input matInput type="number" step="any" formControlName="quantity" />
-            </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Qty</mat-label>
+                <input matInput type="number" step="any" formControlName="quantity" />
+              </mat-form-field>
 
-            <mat-form-field appearance="outline">
-              <mat-label>Unit Price</mat-label>
-              <input matInput type="number" step="any" formControlName="unitPrice" />
-            </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Unit Price</mat-label>
+                <input matInput type="number" step="any" formControlName="unitPrice" />
+              </mat-form-field>
 
-            <div class="line-total">{{ lineTotal(i) | number: '1.2-2' }}</div>
-            <button mat-button type="button" (click)="removeLine(i)" [disabled]="items.length <= 1">Remove</button>
-          </div>
-        }
-      </div>
+              <div class="line-total">{{ lineTotal(i) | number: '1.2-2' }}</div>
+              <button mat-button type="button" (click)="removeLine(i)" [disabled]="items.length <= 1">Remove</button>
+            </div>
+          }
+        </div>
 
-      <div class="totals">
-        <strong>Grand Total: {{ grandTotal() | number: '1.2-2' }}</strong>
-      </div>
-
-      <div class="actions">
-        <button mat-stroked-button type="button" (click)="cancelEdit()">Cancel</button>
-        <button mat-flat-button color="primary" type="submit" [disabled]="loading()">Save</button>
-      </div>
-    </form>
-  }
+        <div class="totals">
+          <strong>Grand Total: {{ grandTotal() | number: '1.2-2' }}</strong>
+        </div>
+      </form>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-stroked-button type="button" (click)="cancelEdit()">Cancel</button>
+      <button mat-flat-button color="primary" type="button" [disabled]="loading()" (click)="save()">Save</button>
+    </mat-dialog-actions>
+  </ng-template>
 </section>

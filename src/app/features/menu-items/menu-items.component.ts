@@ -1,6 +1,6 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, OnInit, TemplateRef, ViewChild, computed, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiService } from '../../core/services/api.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -46,6 +47,11 @@ export class MenuItemsComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly editingId = signal<string | null>(null);
   readonly imagePreview = signal<string | null>(null);
+  readonly page = signal(1);
+  readonly pageSize = 20;
+  readonly totalCount = signal(0);
+  readonly totalPages = signal(0);
+  readonly nameFilter = new FormControl('', { nonNullable: true });
 
   readonly canCreate = computed(() => this.auth.hasPermission('Menu.Create'));
   readonly canUpdate = computed(() => this.auth.hasPermission('Menu.Update'));
@@ -71,13 +77,17 @@ export class MenuItemsComponent implements OnInit {
     this.form.get('sku')?.disable();
     this.form.get('barcode')?.disable();
 
-    this.api.getCategories(true).subscribe({
-      next: cats => this.categories.set(cats),
+    this.api.getCategories({ activeOnly: true, page: 1, pageSize: 100 }).subscribe({
+      next: result => this.categories.set(result.items),
       error: (err: { error?: { detail?: string } }) => {
         const message = err?.error?.detail ?? 'Failed to load categories.';
         this.error.set(message);
         this.notification.error(message);
       }
+    });
+    this.nameFilter.valueChanges.pipe(debounceTime(300), distinctUntilChanged()).subscribe(() => {
+      this.page.set(1);
+      this.reload(1);
     });
     this.reload();
     // regenerate SKU/barcode when the category control changes while creating
@@ -89,27 +99,50 @@ export class MenuItemsComponent implements OnInit {
     });
   }
 
-  reload(): void {
+  reload(page = this.page()): void {
     this.loading.set(true);
     this.error.set(null);
     const categoryId = this.filterCategoryId() || null;
-    this.api.getMenuItems(categoryId).subscribe({
-      next: items => {
-        this.items.set(items);
-        this.loading.set(false);
-      },
-      error: (err: { error?: { detail?: string } }) => {
-        this.loading.set(false);
-        const message = err?.error?.detail ?? 'Failed to load menu items.';
-        this.error.set(message);
-        this.notification.error(message);
-      }
-    });
+    this.api
+      .getMenuItems({
+        page,
+        pageSize: this.pageSize,
+        categoryId,
+        name: this.nameFilter.value.trim() || null
+      })
+      .subscribe({
+        next: result => {
+          this.items.set(result.items);
+          this.page.set(result.page);
+          this.totalCount.set(result.totalCount);
+          this.totalPages.set(result.totalPages);
+          this.loading.set(false);
+        },
+        error: (err: { error?: { detail?: string } }) => {
+          this.loading.set(false);
+          const message = err?.error?.detail ?? 'Failed to load menu items.';
+          this.error.set(message);
+          this.notification.error(message);
+        }
+      });
+  }
+
+  prevPage(): void {
+    if (this.page() > 1) {
+      this.reload(this.page() - 1);
+    }
+  }
+
+  nextPage(): void {
+    if (this.totalPages() > 0 && this.page() < this.totalPages()) {
+      this.reload(this.page() + 1);
+    }
   }
 
   onFilterChange(categoryId: string): void {
     this.filterCategoryId.set(categoryId);
-    this.reload();
+    this.page.set(1);
+    this.reload(1);
   }
 
   mediaUrl(path?: string | null): string | null {
@@ -274,7 +307,8 @@ export class MenuItemsComponent implements OnInit {
 
       this.api.deleteMenuItem(item.id).subscribe({
         next: () => {
-          this.reload();
+          const nextPage = this.items().length <= 1 ? Math.max(1, this.page() - 1) : this.page();
+          this.reload(nextPage);
           this.notification.success('Menu item deleted successfully.');
         },
         error: (err: { error?: { detail?: string } }) => {

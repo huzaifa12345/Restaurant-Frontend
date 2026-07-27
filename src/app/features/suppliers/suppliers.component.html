@@ -6,6 +6,13 @@
     }
   </div>
 
+  <div class="filters">
+    <mat-form-field appearance="outline">
+      <mat-label>Name</mat-label>
+      <input matInput [formControl]="nameFilter" placeholder="Search by name" />
+    </mat-form-field>
+  </div>
+
   <table mat-table [dataSource]="items()" class="table">
     <ng-container matColumnDef="name">
       <th mat-header-cell *matHeaderCellDef>Name</th>
@@ -48,52 +55,68 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
   </table>
 
-  @if (showForm()) {
-    <form [formGroup]="form" (ngSubmit)="save()" class="form">
-      <h2>{{ editingId() ? 'Edit Supplier' : 'Create Supplier' }}</h2>
-      @if (editingIsDefault()) {
-        <p class="muted hint">Default supplier name cannot be changed.</p>
-      }
-      <div class="grid">
-        <mat-form-field appearance="outline">
-          <mat-label>Name</mat-label>
-          <input matInput formControlName="name" />
-        </mat-form-field>
+  <div class="pager">
+    <span class="muted">{{ totalCount() }} total · page {{ page() }} / {{ totalPages() || 1 }}</span>
+    <span class="spacer"></span>
+    <button mat-stroked-button type="button" [disabled]="page() <= 1" (click)="prevPage()">Previous</button>
+    <button
+      mat-stroked-button
+      type="button"
+      [disabled]="totalPages() === 0 || page() >= totalPages()"
+      (click)="nextPage()"
+    >
+      Next
+    </button>
+  </div>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Phone</mat-label>
-          <input matInput formControlName="phone" />
-        </mat-form-field>
+  <ng-template #supplierFormTemplate>
+    <h2 mat-dialog-title>{{ editingId() ? 'Edit Supplier' : 'Create Supplier' }}</h2>
+    <mat-dialog-content>
+      <form [formGroup]="form" (ngSubmit)="save()" class="form">
+        @if (editingIsDefault()) {
+          <p class="muted hint">Default supplier name cannot be changed.</p>
+        }
+        <div class="grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Name</mat-label>
+            <input matInput formControlName="name" />
+          </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Country</mat-label>
-          <mat-select formControlName="country">
-            <mat-option value="">—</mat-option>
-            @for (country of countries; track country) {
-              <mat-option [value]="country">{{ country }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Phone</mat-label>
+            <input matInput formControlName="phone" />
+          </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>City</mat-label>
-          <input matInput formControlName="city" />
-        </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Country</mat-label>
+            <mat-select formControlName="country">
+              <mat-option value="">—</mat-option>
+              @for (country of countries; track country) {
+                <mat-option [value]="country">{{ country }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>State</mat-label>
-          <input matInput formControlName="state" />
-        </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>City</mat-label>
+            <input matInput formControlName="city" />
+          </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Zip</mat-label>
-          <input matInput formControlName="zip" />
-        </mat-form-field>
-      </div>
-      <div class="actions">
-        <button mat-stroked-button type="button" (click)="cancelEdit()">Cancel</button>
-        <button mat-flat-button color="primary" type="submit" [disabled]="loading()">Save</button>
-      </div>
-    </form>
-  }
+          <mat-form-field appearance="outline">
+            <mat-label>State</mat-label>
+            <input matInput formControlName="state" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Zip</mat-label>
+            <input matInput formControlName="zip" />
+          </mat-form-field>
+        </div>
+      </form>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-stroked-button type="button" (click)="cancelEdit()">Cancel</button>
+      <button mat-flat-button color="primary" type="button" [disabled]="loading()" (click)="save()">Save</button>
+    </mat-dialog-actions>
+  </ng-template>
 </section>
