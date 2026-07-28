@@ -1,0 +1,51 @@
+<section class="panel">
+  <div class="header">
+    <h1>Attendance</h1>
+    @if (canUpdate()) {
+      <button mat-flat-button color="primary" type="button" [disabled]="saving() || loading()" (click)="save()">
+        Save
+      </button>
+    }
+  </div>
+
+  <div class="filters">
+    <mat-form-field appearance="outline">
+      <mat-label>Date</mat-label>
+      <input matInput type="date" [formControl]="workDate" (change)="load()" />
+    </mat-form-field>
+    <button mat-stroked-button type="button" [disabled]="loading()" (click)="load()">Reload</button>
+  </div>
+
+  <table mat-table [dataSource]="entries()" class="table">
+    <ng-container matColumnDef="employee">
+      <th mat-header-cell *matHeaderCellDef>Employee</th>
+      <td mat-cell *matCellDef="let row">{{ row.employeeName }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="dailyWage">
+      <th mat-header-cell *matHeaderCellDef>Daily Wage</th>
+      <td mat-cell *matCellDef="let row">{{ row.dailyWage != null ? row.dailyWage : '—' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef>Status</th>
+      <td mat-cell *matCellDef="let row">
+        <mat-form-field appearance="outline" class="status-field">
+          <mat-select
+            [value]="row.status ?? null"
+            [disabled]="!canUpdate()"
+            (selectionChange)="setStatus(row.employeeId, $event.value)"
+          >
+            <mat-option [value]="null">—</mat-option>
+            <mat-option [value]="AttendanceStatus.Present">Present</mat-option>
+            <mat-option [value]="AttendanceStatus.Absent">Absent</mat-option>
+            <mat-option [value]="AttendanceStatus.HalfDay">Half Day</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+</section>

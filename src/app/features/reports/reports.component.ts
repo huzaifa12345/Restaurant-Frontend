@@ -2,6 +2,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -19,6 +20,7 @@ const PAGE_SIZE = 40;
     DecimalPipe,
     ReactiveFormsModule,
     MatButtonModule,
+    MatCheckboxModule,
     MatFormFieldModule,
     MatInputModule,
     MatTabsModule
@@ -36,6 +38,7 @@ export class ReportsComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly appliedFrom = signal('');
   readonly appliedTo = signal('');
+  readonly appliedUseBusinessDay = signal(false);
   readonly summary = signal<SalesSummaryDto | null>(null);
   readonly orders = signal<ReportOrderDto[]>([]);
   readonly topItems = signal<TopSellingItemDto[]>([]);
@@ -63,7 +66,8 @@ export class ReportsComponent implements OnInit {
 
   readonly filters = this.fb.nonNullable.group({
     from: [this.toInputDate(new Date()), Validators.required],
-    to: [this.toInputDate(new Date()), Validators.required]
+    to: [this.toInputDate(new Date()), Validators.required],
+    useBusinessDay: [false]
   });
 
   ngOnInit(): void {
@@ -124,18 +128,19 @@ export class ReportsComponent implements OnInit {
   }
 
   private reloadAll(): void {
-    const { from, to } = this.filters.getRawValue();
+    const { from, to, useBusinessDay } = this.filters.getRawValue();
     this.appliedFrom.set(from);
     this.appliedTo.set(to);
+    this.appliedUseBusinessDay.set(useBusinessDay);
     this.loading.set(true);
     this.error.set(null);
 
     forkJoin({
-      summary: this.api.getSalesReport(from, to),
-      orders: this.api.getOrderReport(from, to, this.ordersPage(), PAGE_SIZE),
-      topItems: this.api.getTopSellingItems(from, to),
-      cancelled: this.api.getCancelledOrdersReport(from, to, this.cancelledPage(), PAGE_SIZE),
-      delivery: this.api.getDeliveryOrdersReport(from, to, this.deliveryPage(), PAGE_SIZE)
+      summary: this.api.getSalesReport(from, to, useBusinessDay),
+      orders: this.api.getOrderReport(from, to, this.ordersPage(), PAGE_SIZE, useBusinessDay),
+      topItems: this.api.getTopSellingItems(from, to, 20, useBusinessDay),
+      cancelled: this.api.getCancelledOrdersReport(from, to, this.cancelledPage(), PAGE_SIZE, useBusinessDay),
+      delivery: this.api.getDeliveryOrdersReport(from, to, this.deliveryPage(), PAGE_SIZE, useBusinessDay)
     }).subscribe({
       next: result => {
         this.summary.set(this.normalizeSummary(result.summary));
@@ -155,7 +160,8 @@ export class ReportsComponent implements OnInit {
   private reloadOrdersOnly(): void {
     const from = this.appliedFrom();
     const to = this.appliedTo();
-    this.api.getOrderReport(from, to, this.ordersPage(), PAGE_SIZE).subscribe({
+    const useBusinessDay = this.appliedUseBusinessDay();
+    this.api.getOrderReport(from, to, this.ordersPage(), PAGE_SIZE, useBusinessDay).subscribe({
       next: page => this.applyOrdersPage(page),
       error: (err: { error?: { detail?: string } }) =>
         this.error.set(err?.error?.detail ?? 'Failed to load order report.')
@@ -165,7 +171,8 @@ export class ReportsComponent implements OnInit {
   private reloadCancelledOnly(): void {
     const from = this.appliedFrom();
     const to = this.appliedTo();
-    this.api.getCancelledOrdersReport(from, to, this.cancelledPage(), PAGE_SIZE).subscribe({
+    const useBusinessDay = this.appliedUseBusinessDay();
+    this.api.getCancelledOrdersReport(from, to, this.cancelledPage(), PAGE_SIZE, useBusinessDay).subscribe({
       next: page => this.applyCancelledPage(page),
       error: (err: { error?: { detail?: string } }) =>
         this.error.set(err?.error?.detail ?? 'Failed to load cancelled orders.')
@@ -175,7 +182,8 @@ export class ReportsComponent implements OnInit {
   private reloadDeliveryOnly(): void {
     const from = this.appliedFrom();
     const to = this.appliedTo();
-    this.api.getDeliveryOrdersReport(from, to, this.deliveryPage(), PAGE_SIZE).subscribe({
+    const useBusinessDay = this.appliedUseBusinessDay();
+    this.api.getDeliveryOrdersReport(from, to, this.deliveryPage(), PAGE_SIZE, useBusinessDay).subscribe({
       next: page => this.applyDeliveryPage(page),
       error: (err: { error?: { detail?: string } }) =>
         this.error.set(err?.error?.detail ?? 'Failed to load delivery orders.')

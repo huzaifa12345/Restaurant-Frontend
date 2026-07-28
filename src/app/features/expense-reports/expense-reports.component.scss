@@ -1,0 +1,63 @@
+.panel {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.header {
+  margin-bottom: 1rem;
+}
+
+.muted {
+  color: #667085;
+  margin: 0.25rem 0 0;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.filters mat-form-field {
+  min-width: 180px;
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.stat {
+  border: 1px solid #e5eaf2;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: grid;
+  gap: 0.35rem;
+  background: #fafbfd;
+  min-width: 160px;
+}
+
+.stat span {
+  color: #667085;
+  font-size: 0.9rem;
+}
+
+.stat strong {
+  font-size: 1.4rem;
+}
+
+.table {
+  width: 100%;
+}
+
+@media (max-width: 800px) {
+  .table {
+    display: block;
+    overflow-x: auto;
+  }
+}

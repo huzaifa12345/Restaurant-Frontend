@@ -102,6 +102,51 @@ export const routes: Routes = [
         data: { permissions: ['Purchases.View'] }
       },
       {
+        path: 'employees',
+        loadComponent: () => import('./features/employees/employees.component').then(m => m.EmployeesComponent),
+        canActivate: [permissionGuard],
+        data: { permissions: ['Employees.View'] }
+      },
+      {
+        path: 'attendance',
+        loadComponent: () => import('./features/attendance/attendance.component').then(m => m.AttendanceComponent),
+        canActivate: [permissionGuard],
+        data: { permissions: ['Employees.View'] }
+      },
+      {
+        path: 'employee-payments',
+        loadComponent: () =>
+          import('./features/employee-payments/employee-payments.component').then(m => m.EmployeePaymentsComponent),
+        canActivate: [permissionGuard],
+        data: { permissions: ['Employees.View'] }
+      },
+      {
+        path: 'expense-categories',
+        loadComponent: () =>
+          import('./features/expense-categories/expense-categories.component').then(m => m.ExpenseCategoriesComponent),
+        canActivate: [permissionGuard],
+        data: { permissions: ['Expenses.View'] }
+      },
+      {
+        path: 'expenses',
+        loadComponent: () => import('./features/expenses/expenses.component').then(m => m.ExpensesComponent),
+        canActivate: [permissionGuard],
+        data: { permissions: ['Expenses.View'] }
+      },
+      {
+        path: 'reports/expenses',
+        loadComponent: () =>
+          import('./features/expense-reports/expense-reports.component').then(m => m.ExpenseReportsComponent),
+        canActivate: [permissionGuard],
+        data: { permissions: ['Reports.View'] }
+      },
+      {
+        path: 'reports/wages',
+        loadComponent: () => import('./features/wage-reports/wage-reports.component').then(m => m.WageReportsComponent),
+        canActivate: [permissionGuard],
+        data: { permissions: ['Reports.View'] }
+      },
+      {
         path: 'restaurants',
         component: RestaurantsComponent,
         canActivate: [platformTenantGuard]

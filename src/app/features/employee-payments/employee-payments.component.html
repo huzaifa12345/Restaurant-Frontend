@@ -1,0 +1,139 @@
+<section class="panel">
+  <div class="header">
+    <h1>Employee Payments</h1>
+    @if (canCreate()) {
+      <button mat-flat-button color="primary" type="button" (click)="startCreate()">Add Payment</button>
+    }
+  </div>
+
+  <form class="filters" [formGroup]="filters" (ngSubmit)="applyFilters()">
+    <mat-form-field appearance="outline">
+      <mat-label>From</mat-label>
+      <input matInput type="date" formControlName="from" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>To</mat-label>
+      <input matInput type="date" formControlName="to" />
+    </mat-form-field>
+    <mat-checkbox formControlName="useBusinessDay">Business day</mat-checkbox>
+    <mat-form-field appearance="outline">
+      <mat-label>Employee</mat-label>
+      <mat-select formControlName="employeeId">
+        <mat-option value="">All</mat-option>
+        @for (emp of employees(); track emp.id) {
+          <mat-option [value]="emp.id">{{ emp.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Payment Type</mat-label>
+      <mat-select formControlName="paymentType">
+        <mat-option value="">All</mat-option>
+        <mat-option [value]="'' + EmployeePaymentType.Daily">Daily</mat-option>
+        <mat-option [value]="'' + EmployeePaymentType.Salary">Salary</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <button mat-flat-button color="primary" type="submit" [disabled]="loading()">Apply</button>
+  </form>
+
+  <table mat-table [dataSource]="items()" class="table">
+    <ng-container matColumnDef="employee">
+      <th mat-header-cell *matHeaderCellDef>Employee</th>
+      <td mat-cell *matCellDef="let row">{{ row.employeeName }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="paidAt">
+      <th mat-header-cell *matHeaderCellDef>Paid At</th>
+      <td mat-cell *matCellDef="let row">{{ row.paidAt | date: 'medium' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="amount">
+      <th mat-header-cell *matHeaderCellDef>Amount</th>
+      <td mat-cell *matCellDef="let row">{{ row.amount | number: '1.2-2' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="paymentType">
+      <th mat-header-cell *matHeaderCellDef>Type</th>
+      <td mat-cell *matCellDef="let row">{{ paymentTypeLabel(row.paymentType) }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="note">
+      <th mat-header-cell *matHeaderCellDef>Note</th>
+      <td mat-cell *matCellDef="let row">{{ row.note || '—' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let row">
+        @if (canUpdate() && row.canEdit !== false) {
+          <button mat-button type="button" (click)="startEdit(row)">Edit</button>
+        }
+        @if (canDelete() && row.canDelete !== false) {
+          <button mat-button type="button" (click)="remove(row)">Delete</button>
+        }
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+
+  <div class="pager">
+    <span class="muted">{{ totalCount() }} total · page {{ page() }} / {{ totalPages() || 1 }}</span>
+    <span class="spacer"></span>
+    <button mat-stroked-button type="button" [disabled]="page() <= 1" (click)="prevPage()">Previous</button>
+    <button
+      mat-stroked-button
+      type="button"
+      [disabled]="totalPages() === 0 || page() >= totalPages()"
+      (click)="nextPage()"
+    >
+      Next
+    </button>
+  </div>
+
+  <ng-template #paymentFormTemplate>
+    <h2 mat-dialog-title>{{ editingId() ? 'Edit Payment' : 'Add Payment' }}</h2>
+    <mat-dialog-content>
+      <form [formGroup]="form" (ngSubmit)="save()" class="form">
+        <div class="grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Employee</mat-label>
+            <mat-select formControlName="employeeId">
+              @for (emp of employees(); track emp.id) {
+                <mat-option [value]="emp.id">{{ emp.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Paid At</mat-label>
+            <input matInput type="datetime-local" formControlName="paidAt" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Amount</mat-label>
+            <input matInput type="number" formControlName="amount" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Payment Type</mat-label>
+            <mat-select formControlName="paymentType">
+              <mat-option [value]="EmployeePaymentType.Daily">Daily</mat-option>
+              <mat-option [value]="EmployeePaymentType.Salary">Salary</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>Note</mat-label>
+            <input matInput formControlName="note" />
+          </mat-form-field>
+        </div>
+      </form>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button mat-stroked-button type="button" (click)="cancelEdit()">Cancel</button>
+      <button mat-flat-button color="primary" type="button" [disabled]="loading()" (click)="save()">Save</button>
+    </mat-dialog-actions>
+  </ng-template>
+</section>
