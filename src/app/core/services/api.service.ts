@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
+  AttendanceDayDto,
   CategoryDto,
   CategoryRequest,
   CreateOrderRequest,
@@ -11,6 +12,16 @@ import {
   CreateRoleRequest,
   CreateUserRequest,
   DashboardDto,
+  EmployeeDto,
+  EmployeePaymentDto,
+  EmployeePaymentRequest,
+  EmployeePaymentType,
+  EmployeeRequest,
+  ExpenseCategoryDto,
+  ExpenseCategoryRequest,
+  ExpenseDto,
+  ExpenseReportDto,
+  ExpenseRequest,
   InvoiceDto,
   MenuItemDto,
   MenuItemRequest,
@@ -43,8 +54,10 @@ import {
   UpdateRoleRequest,
   UpdateUserRequest,
   UploadImageResponse,
+  UpsertAttendanceDayRequest,
   UserDto,
-  UserQuery
+  UserQuery,
+  WageReportDto
 } from '../models/api.models';
 
 @Injectable({ providedIn: 'root' })
@@ -259,8 +272,11 @@ export class ApiService {
     return this.http.post<void>(`${environment.apiUrl}/orders/${id}/cancel`, {});
   }
 
-  getSalesReport(from: string, to: string): Observable<SalesSummaryDto> {
-    const params = new HttpParams().set('from', from).set('to', to);
+  getSalesReport(from: string, to: string, useBusinessDay = false): Observable<SalesSummaryDto> {
+    const params = new HttpParams()
+      .set('from', from)
+      .set('to', to)
+      .set('useBusinessDay', String(useBusinessDay));
     return this.http.get<SalesSummaryDto>(`${environment.apiUrl}/reports/sales`, { params });
   }
 
@@ -279,17 +295,28 @@ export class ApiService {
     return this.http.get<SalesSummaryDto>(`${environment.apiUrl}/reports/monthly-sales`, { params });
   }
 
-  getOrderReport(from: string, to: string, page = 1, pageSize = 40): Observable<PagedResultDto<ReportOrderDto>> {
+  getOrderReport(
+    from: string,
+    to: string,
+    page = 1,
+    pageSize = 40,
+    useBusinessDay = false
+  ): Observable<PagedResultDto<ReportOrderDto>> {
     const params = new HttpParams()
       .set('from', from)
       .set('to', to)
       .set('page', String(page))
-      .set('pageSize', String(pageSize));
+      .set('pageSize', String(pageSize))
+      .set('useBusinessDay', String(useBusinessDay));
     return this.http.get<PagedResultDto<ReportOrderDto>>(`${environment.apiUrl}/reports/orders`, { params });
   }
 
-  getTopSellingItems(from: string, to: string, take = 20): Observable<TopSellingItemDto[]> {
-    const params = new HttpParams().set('from', from).set('to', to).set('take', String(take));
+  getTopSellingItems(from: string, to: string, take = 20, useBusinessDay = false): Observable<TopSellingItemDto[]> {
+    const params = new HttpParams()
+      .set('from', from)
+      .set('to', to)
+      .set('take', String(take))
+      .set('useBusinessDay', String(useBusinessDay));
     return this.http.get<TopSellingItemDto[]>(`${environment.apiUrl}/reports/top-selling-items`, { params });
   }
 
@@ -297,13 +324,15 @@ export class ApiService {
     from: string,
     to: string,
     page = 1,
-    pageSize = 40
+    pageSize = 40,
+    useBusinessDay = false
   ): Observable<PagedResultDto<ReportOrderDto>> {
     const params = new HttpParams()
       .set('from', from)
       .set('to', to)
       .set('page', String(page))
-      .set('pageSize', String(pageSize));
+      .set('pageSize', String(pageSize))
+      .set('useBusinessDay', String(useBusinessDay));
     return this.http.get<PagedResultDto<ReportOrderDto>>(`${environment.apiUrl}/reports/cancelled-orders`, {
       params
     });
@@ -313,13 +342,15 @@ export class ApiService {
     from: string,
     to: string,
     page = 1,
-    pageSize = 40
+    pageSize = 40,
+    useBusinessDay = false
   ): Observable<PagedResultDto<ReportOrderDto>> {
     const params = new HttpParams()
       .set('from', from)
       .set('to', to)
       .set('page', String(page))
-      .set('pageSize', String(pageSize));
+      .set('pageSize', String(pageSize))
+      .set('useBusinessDay', String(useBusinessDay));
     return this.http.get<PagedResultDto<ReportOrderDto>>(`${environment.apiUrl}/reports/delivery-orders`, {
       params
     });
@@ -558,6 +589,212 @@ export class ApiService {
       `${environment.apiUrl}/reports/stock/export`,
       params,
       `stock-report.${format === 'pdf' ? 'pdf' : 'xlsx'}`
+    );
+  }
+
+  getEmployees(
+    query: { page?: number; pageSize?: number; name?: string | null; activeOnly?: boolean | null } = {}
+  ): Observable<PagedResultDto<EmployeeDto>> {
+    let params = new HttpParams()
+      .set('page', String(query.page ?? 1))
+      .set('pageSize', String(query.pageSize ?? 20));
+    if (query.name?.trim()) {
+      params = params.set('name', query.name.trim());
+    }
+    if (query.activeOnly != null) {
+      params = params.set('activeOnly', String(query.activeOnly));
+    }
+    return this.http.get<PagedResultDto<EmployeeDto>>(`${environment.apiUrl}/employees`, { params });
+  }
+
+  createEmployee(body: EmployeeRequest): Observable<EmployeeDto> {
+    return this.http.post<EmployeeDto>(`${environment.apiUrl}/employees`, body);
+  }
+
+  updateEmployee(id: string, body: EmployeeRequest): Observable<EmployeeDto> {
+    return this.http.put<EmployeeDto>(`${environment.apiUrl}/employees/${id}`, body);
+  }
+
+  deleteEmployee(id: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/employees/${id}`);
+  }
+
+  getAttendanceByDate(workDate: string): Observable<AttendanceDayDto> {
+    const params = new HttpParams().set('workDate', workDate);
+    return this.http.get<AttendanceDayDto>(`${environment.apiUrl}/employee-attendances`, { params });
+  }
+
+  upsertAttendanceDay(body: UpsertAttendanceDayRequest): Observable<AttendanceDayDto> {
+    return this.http.put<AttendanceDayDto>(`${environment.apiUrl}/employee-attendances`, body);
+  }
+
+  getEmployeePayments(
+    query: {
+      page?: number;
+      pageSize?: number;
+      employeeId?: string | null;
+      paymentType?: EmployeePaymentType | null;
+      from?: string | null;
+      to?: string | null;
+      useBusinessDay?: boolean;
+    } = {}
+  ): Observable<PagedResultDto<EmployeePaymentDto>> {
+    let params = new HttpParams()
+      .set('page', String(query.page ?? 1))
+      .set('pageSize', String(query.pageSize ?? 20))
+      .set('useBusinessDay', String(query.useBusinessDay ?? false));
+    if (query.employeeId) {
+      params = params.set('employeeId', query.employeeId);
+    }
+    if (query.paymentType != null) {
+      params = params.set('paymentType', String(query.paymentType));
+    }
+    if (query.from) {
+      params = params.set('from', query.from);
+    }
+    if (query.to) {
+      params = params.set('to', query.to);
+    }
+    return this.http.get<PagedResultDto<EmployeePaymentDto>>(`${environment.apiUrl}/employee-payments`, {
+      params
+    });
+  }
+
+  createEmployeePayment(body: EmployeePaymentRequest): Observable<EmployeePaymentDto> {
+    return this.http.post<EmployeePaymentDto>(`${environment.apiUrl}/employee-payments`, body);
+  }
+
+  updateEmployeePayment(id: string, body: EmployeePaymentRequest): Observable<EmployeePaymentDto> {
+    return this.http.put<EmployeePaymentDto>(`${environment.apiUrl}/employee-payments/${id}`, body);
+  }
+
+  deleteEmployeePayment(id: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/employee-payments/${id}`);
+  }
+
+  getExpenseCategories(
+    query: { page?: number; pageSize?: number; name?: string | null; activeOnly?: boolean | null } = {}
+  ): Observable<PagedResultDto<ExpenseCategoryDto>> {
+    let params = new HttpParams()
+      .set('page', String(query.page ?? 1))
+      .set('pageSize', String(query.pageSize ?? 20));
+    if (query.name?.trim()) {
+      params = params.set('name', query.name.trim());
+    }
+    if (query.activeOnly != null) {
+      params = params.set('activeOnly', String(query.activeOnly));
+    }
+    return this.http.get<PagedResultDto<ExpenseCategoryDto>>(`${environment.apiUrl}/expense-categories`, {
+      params
+    });
+  }
+
+  createExpenseCategory(body: ExpenseCategoryRequest): Observable<ExpenseCategoryDto> {
+    return this.http.post<ExpenseCategoryDto>(`${environment.apiUrl}/expense-categories`, body);
+  }
+
+  updateExpenseCategory(id: string, body: ExpenseCategoryRequest): Observable<ExpenseCategoryDto> {
+    return this.http.put<ExpenseCategoryDto>(`${environment.apiUrl}/expense-categories/${id}`, body);
+  }
+
+  deleteExpenseCategory(id: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/expense-categories/${id}`);
+  }
+
+  getExpenses(
+    query: {
+      page?: number;
+      pageSize?: number;
+      categoryId?: string | null;
+      from?: string | null;
+      to?: string | null;
+      useBusinessDay?: boolean;
+    } = {}
+  ): Observable<PagedResultDto<ExpenseDto>> {
+    let params = new HttpParams()
+      .set('page', String(query.page ?? 1))
+      .set('pageSize', String(query.pageSize ?? 20))
+      .set('useBusinessDay', String(query.useBusinessDay ?? false));
+    if (query.categoryId) {
+      params = params.set('categoryId', query.categoryId);
+    }
+    if (query.from) {
+      params = params.set('from', query.from);
+    }
+    if (query.to) {
+      params = params.set('to', query.to);
+    }
+    return this.http.get<PagedResultDto<ExpenseDto>>(`${environment.apiUrl}/expenses`, { params });
+  }
+
+  createExpense(body: ExpenseRequest): Observable<ExpenseDto> {
+    return this.http.post<ExpenseDto>(`${environment.apiUrl}/expenses`, body);
+  }
+
+  updateExpense(id: string, body: ExpenseRequest): Observable<ExpenseDto> {
+    return this.http.put<ExpenseDto>(`${environment.apiUrl}/expenses/${id}`, body);
+  }
+
+  deleteExpense(id: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/expenses/${id}`);
+  }
+
+  getExpenseReport(
+    from: string,
+    to: string,
+    categoryId?: string | null,
+    useBusinessDay = false
+  ): Observable<ExpenseReportDto> {
+    let params = new HttpParams()
+      .set('from', from)
+      .set('to', to)
+      .set('useBusinessDay', String(useBusinessDay));
+    if (categoryId) {
+      params = params.set('categoryId', categoryId);
+    }
+    return this.http.get<ExpenseReportDto>(`${environment.apiUrl}/reports/expenses`, { params });
+  }
+
+  getWageReport(from: string, to: string, useBusinessDay = false): Observable<WageReportDto> {
+    const params = new HttpParams()
+      .set('from', from)
+      .set('to', to)
+      .set('useBusinessDay', String(useBusinessDay));
+    return this.http.get<WageReportDto>(`${environment.apiUrl}/reports/wages`, { params });
+  }
+
+  downloadExpenseReportExport(
+    format: 'xlsx' | 'pdf',
+    from: string,
+    to: string,
+    categoryId?: string | null,
+    useBusinessDay = false
+  ): void {
+    let params = new HttpParams()
+      .set('from', from)
+      .set('to', to)
+      .set('format', format)
+      .set('useBusinessDay', String(useBusinessDay));
+    if (categoryId) {
+      params = params.set('categoryId', categoryId);
+    }
+    this.downloadBlob(
+      `${environment.apiUrl}/reports/expenses/export`,
+      params,
+      `expense-report.${format === 'pdf' ? 'pdf' : 'xlsx'}`
+    );
+  }
+
+  downloadWageReportExport(format: 'xlsx' | 'pdf', from: string, to: string, useBusinessDay = false): void {
+    const params = new HttpParams()
+      .set('from', from)
+      .set('to', to)
+      .set('format', format)
+      .set('useBusinessDay', String(useBusinessDay));
+    this.downloadBlob(
+      `${environment.apiUrl}/reports/wages/export`,
+      params,
+      `wage-report.${format === 'pdf' ? 'pdf' : 'xlsx'}`
     );
   }
 

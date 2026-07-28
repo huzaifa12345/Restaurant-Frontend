@@ -7,7 +7,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { AuthService } from '../../core/services/auth.service';
 import { AppFooterComponent } from '../../shared/components/app-footer/app-footer.component';
 
-type NavSection = 'sales' | 'inventory' | 'admin';
+type NavSection = 'sales' | 'inventory' | 'expenses' | 'admin';
 
 @Component({
   selector: 'app-shell',
@@ -31,6 +31,7 @@ export class ShellComponent {
   readonly user = this.auth.currentUser;
   readonly salesOpen = signal(true);
   readonly inventoryOpen = signal(true);
+  readonly expensesOpen = signal(true);
   readonly adminOpen = signal(true);
 
   readonly canManageUsers = computed(() => this.auth.hasPermission('Users.View'));
@@ -46,11 +47,22 @@ export class ShellComponent {
   readonly canViewMenu = computed(() => this.auth.hasPermission('Menu.View'));
   readonly canViewInventory = computed(() => this.auth.hasPermission('Inventory.View'));
   readonly canViewPurchases = computed(() => this.auth.hasPermission('Purchases.View'));
+  readonly canViewEmployees = computed(() => this.auth.hasPermission('Employees.View'));
+  readonly canViewExpenses = computed(() => this.auth.hasPermission('Expenses.View'));
   readonly showInventoryNav = computed(
     () => this.canViewInventory() || this.canViewPurchases() || this.canViewReports()
   );
+  readonly showExpensesNav = computed(
+    () => this.canViewExpenses() || this.canViewReports()
+  );
   readonly showAdminNav = computed(
-    () => this.canManageUsers() || this.canManageRoles() || this.canUpdateRestaurant() || this.canManageRestaurants()
+    () =>
+      this.canManageUsers() ||
+      this.canManageRoles() ||
+      this.canUpdateRestaurant() ||
+      this.canManageRestaurants() ||
+      this.canViewEmployees() ||
+      this.canViewReports()
   );
 
   toggleSection(section: NavSection): void {
@@ -60,6 +72,10 @@ export class ShellComponent {
     }
     if (section === 'inventory') {
       this.inventoryOpen.update(v => !v);
+      return;
+    }
+    if (section === 'expenses') {
+      this.expensesOpen.update(v => !v);
       return;
     }
     this.adminOpen.update(v => !v);

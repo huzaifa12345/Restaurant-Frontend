@@ -61,6 +61,26 @@
           </div>
         }
 
+        @if (showExpensesNav()) {
+          <div class="nav-section">
+            <button type="button" class="nav-section-toggle" (click)="toggleSection('expenses')">
+              <span>Expenses</span>
+              <mat-icon>{{ expensesOpen() ? 'expand_less' : 'expand_more' }}</mat-icon>
+            </button>
+            @if (expensesOpen()) {
+              <div class="nav-links">
+                @if (canViewExpenses()) {
+                  <a mat-list-item routerLink="/app/expense-categories" routerLinkActive="active">Expense Categories</a>
+                  <a mat-list-item routerLink="/app/expenses" routerLinkActive="active">Expenses</a>
+                }
+                @if (canViewReports()) {
+                  <a mat-list-item routerLink="/app/reports/expenses" routerLinkActive="active">Expense Report</a>
+                }
+              </div>
+            }
+          </div>
+        }
+
         @if (showAdminNav()) {
           <div class="nav-section">
             <button type="button" class="nav-section-toggle" (click)="toggleSection('admin')">
@@ -69,6 +89,14 @@
             </button>
             @if (adminOpen()) {
               <div class="nav-links">
+                @if (canViewEmployees()) {
+                  <a mat-list-item routerLink="/app/employees" routerLinkActive="active">Employees</a>
+                  <a mat-list-item routerLink="/app/attendance" routerLinkActive="active">Attendance</a>
+                  <a mat-list-item routerLink="/app/employee-payments" routerLinkActive="active">Payments</a>
+                }
+                @if (canViewReports()) {
+                  <a mat-list-item routerLink="/app/reports/wages" routerLinkActive="active">Wage Report</a>
+                }
                 @if (canManageUsers()) {
                   <a mat-list-item routerLink="/app/users" routerLinkActive="active">Users</a>
                 }

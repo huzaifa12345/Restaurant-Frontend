@@ -44,6 +44,7 @@ export interface RestaurantDto {
   country?: string | null;
   currency: string;
   timezone: string;
+  businessDayStartTime: string;
   logo?: string | null;
   subscriptionExpiryDate?: string | null;
   isActive: boolean;
@@ -126,6 +127,7 @@ export interface UpdateRestaurantRequest {
   country?: string | null;
   currency: string;
   timezone: string;
+  businessDayStartTime: string;
   logo?: string | null;
   isActive: boolean;
 }
@@ -540,3 +542,153 @@ export interface StockReportDto {
   hasPackSizes: boolean;
   items: StockReportRowDto[];
 }
+
+export enum AttendanceStatus {
+  Present = 1,
+  Absent = 2,
+  HalfDay = 3
+}
+
+export enum EmployeePaymentType {
+  Daily = 1,
+  Salary = 2
+}
+
+export interface EmployeeDto {
+  id: string;
+  name: string;
+  phone?: string | null;
+  designation?: string | null;
+  dailyWage?: number | null;
+  monthlySalary?: number | null;
+  isActive: boolean;
+  canEdit?: boolean;
+  canDelete?: boolean;
+}
+
+export interface EmployeeRequest {
+  name: string;
+  phone?: string | null;
+  designation?: string | null;
+  dailyWage?: number | null;
+  monthlySalary?: number | null;
+  isActive: boolean;
+}
+
+export interface AttendanceEntryDto {
+  employeeId: string;
+  employeeName: string;
+  dailyWage?: number | null;
+  attendanceId?: string | null;
+  status?: AttendanceStatus | null;
+}
+
+export interface AttendanceDayDto {
+  workDate: string;
+  entries: AttendanceEntryDto[];
+}
+
+export interface AttendanceMarkItem {
+  employeeId: string;
+  status: AttendanceStatus;
+}
+
+export interface UpsertAttendanceDayRequest {
+  workDate: string;
+  entries: AttendanceMarkItem[];
+}
+
+export interface EmployeePaymentDto {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  paidAt: string;
+  amount: number;
+  paymentType: EmployeePaymentType;
+  note?: string | null;
+  canEdit?: boolean;
+  canDelete?: boolean;
+}
+
+export interface EmployeePaymentRequest {
+  employeeId: string;
+  paidAt: string;
+  amount: number;
+  paymentType: EmployeePaymentType;
+  note?: string | null;
+}
+
+export interface ExpenseCategoryDto {
+  id: string;
+  name: string;
+  isActive: boolean;
+  canEdit?: boolean;
+  canDelete?: boolean;
+}
+
+export interface ExpenseCategoryRequest {
+  name: string;
+  isActive: boolean;
+}
+
+export interface ExpenseDto {
+  id: string;
+  categoryId: string;
+  categoryName: string;
+  occurredAt: string;
+  amount: number;
+  note?: string | null;
+  canEdit?: boolean;
+  canDelete?: boolean;
+}
+
+export interface ExpenseRequest {
+  categoryId: string;
+  occurredAt: string;
+  amount: number;
+  note?: string | null;
+}
+
+export interface ExpenseReportRowDto {
+  id: string;
+  occurredAt: string;
+  categoryName: string;
+  amount: number;
+  note?: string | null;
+}
+
+export interface ExpenseReportDto {
+  from: string;
+  to: string;
+  useBusinessDay: boolean;
+  totalAmount: number;
+  items: ExpenseReportRowDto[];
+}
+
+export interface WageReportEmployeeDto {
+  employeeId: string;
+  employeeName: string;
+  dailyWage?: number | null;
+  monthlySalary?: number | null;
+  presentCount: number;
+  halfDayCount: number;
+  absentCount: number;
+  earned: number;
+  paidDaily: number;
+  paidSalary: number;
+  paidTotal: number;
+  balance: number;
+}
+
+export interface WageReportDto {
+  from: string;
+  to: string;
+  useBusinessDay: boolean;
+  totalEarned: number;
+  totalPaidDaily: number;
+  totalPaidSalary: number;
+  totalPaid: number;
+  totalBalance: number;
+  employees: WageReportEmployeeDto[];
+}
+

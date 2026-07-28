@@ -32,6 +32,7 @@ export class RestaurantSettingsComponent implements OnInit {
     country: [''],
     currency: ['PKR', Validators.required],
     timezone: ['Asia/Karachi', Validators.required],
+    businessDayStartTime: ['00:00', Validators.required],
     logo: [''],
     isActive: [true]
   });
@@ -50,6 +51,7 @@ export class RestaurantSettingsComponent implements OnInit {
           country: restaurant.country ?? '',
           currency: restaurant.currency,
           timezone: restaurant.timezone,
+          businessDayStartTime: restaurant.businessDayStartTime?.slice(0, 5) || '00:00',
           logo: restaurant.logo ?? '',
           isActive: restaurant.isActive
         });
@@ -82,6 +84,7 @@ export class RestaurantSettingsComponent implements OnInit {
       country: value.country || null,
       currency: value.currency,
       timezone: value.timezone,
+      businessDayStartTime: value.businessDayStartTime,
       logo: value.logo || null,
       isActive: value.isActive
     }).subscribe({
