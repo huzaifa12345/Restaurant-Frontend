@@ -1,4 +1,5 @@
 {
+  "buildCommand": "npm run build",
   "outputDirectory": "dist/restaurant-web/browser",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
