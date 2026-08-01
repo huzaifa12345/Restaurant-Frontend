@@ -315,28 +315,14 @@
             <hr class="receipt-divider" />
             <div class="receipt-items">
               @for (item of inv.items; track $index) {
-                <div>
-                  <div class="receipt-item-name">{{ item.name }}</div>
-                  <div class="receipt-line">
-                    <span>{{ item.quantity }} x {{ item.unitPrice | number: '1.0-2' }}</span>
-                    <span>{{ item.total | number: '1.0-2' }}</span>
-                  </div>
+                <div class="receipt-line">
+                  <span class="receipt-item-name">{{ item.name }}</span>
+                  <span>x {{ item.quantity }}</span>
                 </div>
               }
             </div>
-            <hr class="receipt-divider" />
-            <div class="receipt-totals">
-              <div><span>Subtotal</span><span>{{ inv.subtotal | number: '1.0-2' }}</span></div>
-              <div><span>Discount</span><span>{{ inv.discount | number: '1.0-2' }}</span></div>
-              <!-- Tax row hidden for now; restore when tax is enabled.
-              <div><span>Tax</span><span>{{ inv.tax | number: '1.0-2' }}</span></div>
-              -->
-              @if (inv.deliveryCharges > 0) {
-                <div><span>Delivery</span><span>{{ inv.deliveryCharges | number: '1.0-2' }}</span></div>
-              }
-              <div class="grand-row"><span>TOTAL ({{ inv.currency }})</span><span>{{ inv.grandTotal | number: '1.0-2' }}</span></div>
-            </div>
             @if (inv.remarks) {
+              <hr class="receipt-divider" />
               <p class="receipt-footer">Notes: {{ inv.remarks }}</p>
             }
           </article>
