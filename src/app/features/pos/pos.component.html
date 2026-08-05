@@ -367,12 +367,8 @@
             </article>
           }
 
-          @if (receiptCopy() === 'both') {
-            <hr class="screen-only-break no-print" />
-          }
-
           @if (receiptCopy() === 'restaurant' || receiptCopy() === 'both') {
-            <article class="receipt receipt-copy" [class.receipt-page-break]="receiptCopy() === 'both'">
+            <article class="receipt receipt-copy">
               <div class="receipt-copy-label">Restaurant Copy</div>
               <header class="receipt-header">
                 <h1>{{ inv.restaurant.name }}</h1>
