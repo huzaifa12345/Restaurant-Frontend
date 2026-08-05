@@ -1,9 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { filter } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { AppFooterComponent } from '../../shared/components/app-footer/app-footer.component';
 
@@ -27,6 +28,15 @@ type NavSection = 'sales' | 'inventory' | 'expenses' | 'admin';
 })
 export class ShellComponent {
   private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+
+  constructor() {
+    this.router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+      });
+  }
 
   readonly user = this.auth.currentUser;
   readonly salesOpen = signal(true);
