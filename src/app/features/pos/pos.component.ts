@@ -2,6 +2,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -18,8 +19,10 @@ import {
   PaymentStatus,
   PaymentType
 } from '../../core/models/api.models';
+import { EditOrderDialogComponent } from './edit-order-dialog/edit-order-dialog.component';
 
 type PosTab = 'billing' | 'orders';
+type ReceiptCopy = 'customer' | 'restaurant' | 'both';
 
 interface CartLine {
   menuItemId: string;
@@ -44,6 +47,7 @@ interface BillingState {
     DecimalPipe,
     ReactiveFormsModule,
     MatButtonModule,
+    MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule
@@ -55,6 +59,7 @@ export class PosComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(ApiService);
   private readonly auth = inject(AuthService);
+  private readonly dialog = inject(MatDialog);
 
   readonly OrderType = OrderType;
   readonly PaymentType = PaymentType;
@@ -71,6 +76,8 @@ export class PosComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly message = signal<string | null>(null);
   readonly invoice = signal<InvoiceDto | null>(null);
+  readonly receiptCopy = signal<ReceiptCopy | null>(null);
+  readonly silentPrint = signal(false);
   readonly orders = signal<OrderSummaryDto[]>([]);
   readonly billing = signal<BillingState>({
     orderType: OrderType.DineIn,
@@ -143,11 +150,15 @@ export class PosComponent implements OnInit {
   ngOnInit(): void {
     this.form.valueChanges.subscribe(() => this.syncBilling());
     this.form.controls.orderType.valueChanges.subscribe(type => {
-      if (type !== OrderType.Delivery) {
+      if (type === OrderType.Delivery) {
+        this.form.controls.deliveryCharges.enable({ emitEvent: false });
+      } else {
+        this.form.controls.deliveryCharges.disable({ emitEvent: false });
         this.form.patchValue({ deliveryCharges: 0 }, { emitEvent: false });
-        this.syncBilling();
       }
+      this.syncBilling();
     });
+    this.form.controls.deliveryCharges.disable({ emitEvent: false });
 
     this.api.getCategories({ activeOnly: true, page: 1, pageSize: 100 }).subscribe({
       next: result => {
@@ -336,6 +347,26 @@ export class PosComponent implements OnInit {
     });
   }
 
+  openEditOrder(order: OrderSummaryDto): void {
+    if (!this.canComplete() || order.orderStatus !== OrderStatus.Pending) {
+      return;
+    }
+
+    this.dialog
+      .open(EditOrderDialogComponent, {
+        width: '560px',
+        maxWidth: '95vw',
+        data: { orderId: order.id, orderNo: order.orderNo }
+      })
+      .afterClosed()
+      .subscribe(saved => {
+        if (saved) {
+          this.message.set(`Order ${order.orderNo} updated.`);
+          this.reloadOrders();
+        }
+      });
+  }
+
   markDone(order: OrderSummaryDto): void {
     if (!this.canComplete()) {
       return;
@@ -378,22 +409,47 @@ export class PosComponent implements OnInit {
 
   closeInvoice(): void {
     this.invoice.set(null);
+    this.receiptCopy.set(null);
+    this.silentPrint.set(false);
   }
 
   printInvoice(): void {
     const cleanup = () => {
       window.removeEventListener('afterprint', cleanup);
-      this.invoice.set(null);
+      this.closeInvoice();
     };
     window.addEventListener('afterprint', cleanup);
     window.print();
   }
 
-  viewReceipt(order: OrderSummaryDto): void {
+  showReceipt(order: OrderSummaryDto, copy: ReceiptCopy): void {
+    this.error.set(null);
     this.api.getInvoice(order.id).subscribe({
-      next: invoice => this.invoice.set(invoice),
+      next: invoice => {
+        this.silentPrint.set(false);
+        this.receiptCopy.set(copy);
+        this.invoice.set(invoice);
+      },
       error: (err: { error?: { detail?: string } }) =>
         this.error.set(err?.error?.detail ?? 'Failed to load invoice.')
+    });
+  }
+
+  printReceipt(order: OrderSummaryDto, copy: ReceiptCopy): void {
+    this.error.set(null);
+    this.actingOrderId.set(order.id);
+    this.api.getInvoice(order.id).subscribe({
+      next: invoice => {
+        this.actingOrderId.set(null);
+        this.silentPrint.set(true);
+        this.receiptCopy.set(copy);
+        this.invoice.set(invoice);
+        setTimeout(() => this.printInvoice(), 50);
+      },
+      error: (err: { error?: { detail?: string } }) => {
+        this.actingOrderId.set(null);
+        this.error.set(err?.error?.detail ?? 'Failed to load invoice.');
+      }
     });
   }
 

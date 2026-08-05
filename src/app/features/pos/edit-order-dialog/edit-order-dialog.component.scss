@@ -1,0 +1,125 @@
+.edit-order-dialog {
+  min-width: min(520px, 92vw);
+  max-height: 70vh;
+}
+
+.edit-lines {
+  display: grid;
+  gap: 0.55rem;
+  margin-bottom: 0.65rem;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.edit-line {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.2rem 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.line-info {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.line-info span {
+  color: #667085;
+  font-size: 0.85rem;
+}
+
+.line-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.qty-btn,
+.remove {
+  border: 1px solid #d0d5dd;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.qty-btn {
+  width: 28px;
+  height: 28px;
+}
+
+.remove {
+  margin-left: auto;
+  padding: 0.2rem 0.55rem;
+  color: #b42318;
+  border-color: #fecdca;
+}
+
+.qty {
+  min-width: 1.5rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.line-total {
+  font-weight: 600;
+  align-self: start;
+}
+
+.edit-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 0.45rem;
+  border-top: 1px solid #e5eaf2;
+  padding-top: 0.45rem;
+}
+
+.edit-form .full,
+.edit-form .totals {
+  grid-column: 1 / -1;
+}
+
+.edit-form .mat-mdc-form-field {
+  font-size: 0.82rem;
+}
+
+.edit-form ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+.edit-form ::ng-deep .mat-mdc-text-field-wrapper {
+  padding-bottom: 0;
+}
+
+.edit-form ::ng-deep .mat-mdc-form-field-infix {
+  min-height: 36px;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+.edit-form ::ng-deep .mdc-notched-outline__notch {
+  max-width: 100%;
+}
+
+.totals {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0.1rem 0 0.15rem;
+  font-size: 0.9rem;
+}
+
+.totals > div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.muted {
+  color: #667085;
+}
+
+.error {
+  color: #b42318;
+  margin: 0 0 0.5rem;
+}
