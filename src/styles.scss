@@ -88,22 +88,57 @@ h3,
   html,
   body {
     width: 80mm !important;
-    min-width: 80mm !important;
+    min-width: 0 !important;
     max-width: 80mm !important;
     height: auto !important;
+    min-height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
     background: #fff !important;
+    overflow: hidden !important;
+  }
+
+  /* Hide app chrome so it does not reserve paper height. */
+  .topbar,
+  .sidebar,
+  app-footer,
+  .pos > :not(.invoice-overlay),
+  .no-print,
+  .screen-only-break {
+    display: none !important;
+  }
+
+  .shell,
+  .body,
+  .content,
+  .pos,
+  .invoice-overlay,
+  .invoice-panel,
+  .receipt-stack {
+    display: block !important;
+    position: static !important;
+    inset: auto !important;
+    width: 80mm !important;
+    max-width: 80mm !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
     overflow: visible !important;
   }
 
-  body * {
-    visibility: hidden !important;
-  }
-
-  .receipt-print-root,
-  .receipt-print-root * {
-    visibility: visible !important;
+  .receipt-print-root {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    width: 80mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .receipt-print-root,
@@ -122,50 +157,29 @@ h3,
     font-weight: 700 !important;
   }
 
-  .invoice-overlay,
-  .invoice-panel {
-    position: static !important;
-    inset: auto !important;
-    display: block !important;
-    background: transparent !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 80mm !important;
-    max-width: 80mm !important;
-    max-height: none !important;
-    overflow: visible !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-  }
-
-  .receipt-print-root {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 80mm !important;
-    margin: 0 !important;
-  }
-
   .receipt {
     width: 72mm !important;
     max-width: 72mm !important;
     margin: 0 auto !important;
     box-sizing: border-box !important;
     padding: 1mm !important;
-    page-break-inside: avoid !important;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
   }
 
   .receipt-copy {
-    break-after: page;
-    page-break-after: always;
+    break-after: auto !important;
+    page-break-after: auto !important;
+    break-before: auto !important;
+    page-break-before: auto !important;
   }
 
-  .receipt-copy:last-child {
-    break-after: auto;
-    page-break-after: auto;
-  }
-
-  .screen-only-break {
-    display: none !important;
+  /*
+   * Both copies: cut/page-break only between the two articles.
+   * Single copy has one .receipt-copy, so no trailing cut/blank feed.
+   */
+  .receipt-print-root .receipt-copy + .receipt-copy {
+    break-before: page !important;
+    page-break-before: always !important;
   }
 }
