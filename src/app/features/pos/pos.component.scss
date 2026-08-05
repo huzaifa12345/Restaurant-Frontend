@@ -185,13 +185,13 @@
 }
 
 .cart-lines {
-  flex: 1;
+  flex: 1 1 auto;
   overflow: auto;
-  margin: 0.75rem 0;
+  margin: 0.4rem 0 0.5rem;
   display: grid;
-  gap: 0.65rem;
+  gap: 0.5rem;
   align-content: start;
-  min-height: 120px;
+  min-height: 220px;
 }
 
 .cart-line {
@@ -252,11 +252,12 @@
 }
 
 .billing-form {
+  flex: 0 0 auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.35rem 0.65rem;
+  gap: 6px 0.45rem;
   border-top: 1px solid #e5eaf2;
-  padding-top: 0.75rem;
+  padding-top: 0.45rem;
 }
 
 .billing-form .full,
@@ -265,10 +266,33 @@
   grid-column: 1 / -1;
 }
 
+.billing-form .mat-mdc-form-field {
+  font-size: 0.82rem;
+}
+
+.billing-form ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+.billing-form ::ng-deep .mat-mdc-text-field-wrapper {
+  padding-bottom: 0;
+}
+
+.billing-form ::ng-deep .mat-mdc-form-field-infix {
+  min-height: 36px;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+.billing-form ::ng-deep .mdc-notched-outline__notch {
+  max-width: 100%;
+}
+
 .totals {
   display: grid;
-  gap: 0.35rem;
-  margin: 0.25rem 0 0.5rem;
+  gap: 0.2rem;
+  margin: 0.1rem 0 0.25rem;
+  font-size: 0.9rem;
 }
 
 .totals > div {
@@ -277,18 +301,22 @@
 }
 
 .grand {
-  font-size: 1.2rem;
+  font-size: 1.05rem;
 }
 
 .cash-hint {
-  margin: 0.15rem 0 0;
+  margin: 0.1rem 0 0;
   color: #98a2b3;
-  font-size: 0.85rem;
-  line-height: 1.35;
+  font-size: 0.78rem;
+  line-height: 1.3;
 }
 
 .save-btn {
   width: 100%;
+  min-height: 36px !important;
+  height: 36px;
+  line-height: 36px;
+  font-size: 0.9rem;
 }
 
 .orders-panel {
@@ -361,6 +389,33 @@
   flex-shrink: 0;
   flex-wrap: wrap;
   justify-content: flex-end;
+  align-items: center;
+}
+
+.receipt-actions {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.receipt-action-row {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.receipt-action-label {
+  min-width: 4.5rem;
+  color: #667085;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.receipt-mini-btn.mat-mdc-outlined-button {
+  min-width: 0;
+  height: 30px;
+  padding: 0 0.55rem;
+  font-size: 0.75rem;
+  line-height: 1;
 }
 
 .muted {
@@ -379,6 +434,14 @@
   place-items: center;
   z-index: 40;
   padding: 1rem;
+}
+
+@media screen {
+  .invoice-overlay.print-silent {
+    opacity: 0;
+    pointer-events: none;
+    z-index: -1;
+  }
 }
 
 .invoice-panel {
@@ -499,6 +562,23 @@
   margin-top: 0.5rem;
 }
 
+.receipt-brand-footer {
+  text-align: center;
+  margin-top: 0.4rem;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.receipt-brand-footer p {
+  margin: 0.15rem 0;
+}
+
+.receipt-brand-footer a {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
 .screen-only-break {
   border: none;
   border-top: 1px dashed #d0d5dd;
@@ -532,5 +612,10 @@
 @media print {
   .no-print {
     display: none !important;
+  }
+
+  .receipt-page-break {
+    break-before: page;
+    page-break-before: always;
   }
 }

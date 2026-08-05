@@ -1,4 +1,4 @@
-<section class="pos" [class.invoice-open]="!!invoice()">
+<section class="pos" [class.invoice-open]="!!invoice() && !silentPrint()">
   <div class="pos-tabs no-print">
     <button type="button" class="pos-tab" [class.active]="activeTab() === 'billing'" (click)="setTab('billing')">
       Billing
@@ -113,19 +113,17 @@
             <input matInput type="number" formControlName="discount" min="0" step="0.01" />
           </mat-form-field>
 
+          <mat-form-field appearance="outline">
+            <mat-label>Delivery Charges</mat-label>
+            <input matInput type="number" formControlName="deliveryCharges" min="0" step="0.01" />
+          </mat-form-field>
+
           <!-- Tax UI hidden for now; still sent as 0. Re-enable when tax is needed.
           <mat-form-field appearance="outline">
             <mat-label>Tax</mat-label>
             <input matInput type="number" formControlName="tax" min="0" step="0.01" />
           </mat-form-field>
           -->
-
-          @if (form.controls.orderType.value === OrderType.Delivery) {
-            <mat-form-field appearance="outline" class="full">
-              <mat-label>Delivery Charges</mat-label>
-              <input matInput type="number" formControlName="deliveryCharges" min="0" step="0.01" />
-            </mat-form-field>
-          }
 
           <mat-form-field appearance="outline" class="full">
             <mat-label>Remarks</mat-label>
@@ -156,7 +154,7 @@
       <div class="orders-header">
         <div>
           <h2>Open Orders</h2>
-          <p class="muted">Pending orders wait here. Done marks Completed; use Receipt to print.</p>
+          <p class="muted">Pending orders wait here. Done marks Completed; Print sends directly, Show opens the receipt.</p>
         </div>
         <button mat-stroked-button type="button" (click)="reloadOrders()">Refresh</button>
       </div>
@@ -180,6 +178,13 @@
             <div class="order-actions">
               @if (canComplete()) {
                 <button
+                  mat-stroked-button
+                  type="button"
+                  [disabled]="actingOrderId() === order.id"
+                  (click)="openEditOrder(order)">
+                  Edit
+                </button>
+                <button
                   mat-flat-button
                   color="primary"
                   type="button"
@@ -188,13 +193,65 @@
                   Done
                 </button>
               }
-              <button
-                mat-stroked-button
-                type="button"
-                [disabled]="actingOrderId() === order.id"
-                (click)="viewReceipt(order)">
-                Receipt
-              </button>
+              <div class="receipt-actions">
+                <div class="receipt-action-row">
+                  <span class="receipt-action-label">Customer</span>
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    class="receipt-mini-btn"
+                    [disabled]="actingOrderId() === order.id"
+                    (click)="printReceipt(order, 'customer')">
+                    Print
+                  </button>
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    class="receipt-mini-btn"
+                    [disabled]="actingOrderId() === order.id"
+                    (click)="showReceipt(order, 'customer')">
+                    Show
+                  </button>
+                </div>
+                <div class="receipt-action-row">
+                  <span class="receipt-action-label">Restaurant</span>
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    class="receipt-mini-btn"
+                    [disabled]="actingOrderId() === order.id"
+                    (click)="printReceipt(order, 'restaurant')">
+                    Print
+                  </button>
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    class="receipt-mini-btn"
+                    [disabled]="actingOrderId() === order.id"
+                    (click)="showReceipt(order, 'restaurant')">
+                    Show
+                  </button>
+                </div>
+                <div class="receipt-action-row">
+                  <span class="receipt-action-label">Both</span>
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    class="receipt-mini-btn"
+                    [disabled]="actingOrderId() === order.id"
+                    (click)="printReceipt(order, 'both')">
+                    Print
+                  </button>
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    class="receipt-mini-btn"
+                    [disabled]="actingOrderId() === order.id"
+                    (click)="showReceipt(order, 'both')">
+                    Show
+                  </button>
+                </div>
+              </div>
               @if (canCancel()) {
                 <button
                   mat-stroked-button
@@ -225,7 +282,13 @@
             </div>
             <div class="order-actions">
               @if (order.orderStatus === OrderStatus.Completed) {
-                <button mat-button type="button" (click)="viewReceipt(order)">Receipt</button>
+                <button
+                  mat-stroked-button
+                  type="button"
+                  [disabled]="actingOrderId() === order.id"
+                  (click)="showReceipt(order, 'both')">
+                  Receipt
+                </button>
               }
             </div>
           </article>
@@ -237,95 +300,106 @@
   }
 
   @if (invoice(); as inv) {
-    <div class="invoice-overlay">
+    <div class="invoice-overlay" [class.print-silent]="silentPrint()">
       <div class="invoice-panel">
         <div class="invoice-actions no-print">
           <button type="button" class="close-btn" aria-label="Close receipt" (click)="closeInvoice()">×</button>
           <button mat-stroked-button type="button" (click)="closeInvoice()">Close</button>
-          <button mat-flat-button color="primary" type="button" (click)="printInvoice()">Print Receipt</button>
+          <button mat-flat-button color="primary" type="button" (click)="printInvoice()">Print</button>
         </div>
 
         <div class="receipt-print-root receipt-stack">
-          <article class="receipt receipt-copy">
-            <div class="receipt-copy-label">Customer Copy</div>
-            <header class="receipt-header">
-              <h1>{{ inv.restaurant.name }}</h1>
-              @if (inv.restaurant.address) {
-                <p>{{ inv.restaurant.address }}</p>
-              }
-              @if (inv.restaurant.city || inv.restaurant.country) {
-                <p>{{ inv.restaurant.city }}{{ inv.restaurant.city && inv.restaurant.country ? ', ' : '' }}{{ inv.restaurant.country }}</p>
-              }
-              @if (inv.restaurant.phone) {
-                <p>Tel: {{ inv.restaurant.phone }}</p>
-              }
-            </header>
-            <hr class="receipt-divider" />
-            <div class="receipt-meta">
-              <div><span>Order</span><span>{{ inv.orderNo }}</span></div>
-              <div><span>Date</span><span>{{ inv.createdAt | date: 'yyyy-MM-dd HH:mm' }}</span></div>
-              <div><span>Type</span><span>{{ orderTypeLabel(inv.orderType) }}</span></div>
-              <div><span>Pay</span><span>{{ paymentTypeLabel(inv.paymentType) }}</span></div>
-            </div>
-            <hr class="receipt-divider" />
-            <div class="receipt-items">
-              @for (item of inv.items; track $index) {
-                <div>
-                  <div class="receipt-item-name">{{ item.name }}</div>
-                  <div class="receipt-line">
-                    <span>{{ item.quantity }} x {{ item.unitPrice | number: '1.0-2' }}</span>
-                    <span>{{ item.total | number: '1.0-2' }}</span>
-                  </div>
-                </div>
-              }
-            </div>
-            <hr class="receipt-divider" />
-            <div class="receipt-totals">
-              <div><span>Subtotal</span><span>{{ inv.subtotal | number: '1.0-2' }}</span></div>
-              <div><span>Discount</span><span>{{ inv.discount | number: '1.0-2' }}</span></div>
-              <!-- Tax row hidden for now; restore when tax is enabled.
-              <div><span>Tax</span><span>{{ inv.tax | number: '1.0-2' }}</span></div>
-              -->
-              @if (inv.deliveryCharges > 0) {
-                <div><span>Delivery</span><span>{{ inv.deliveryCharges | number: '1.0-2' }}</span></div>
-              }
-              <div class="grand-row"><span>TOTAL ({{ inv.currency }})</span><span>{{ inv.grandTotal | number: '1.0-2' }}</span></div>
-            </div>
-            @if (inv.remarks) {
-              <p class="receipt-footer">{{ inv.remarks }}</p>
-            }
-            <p class="receipt-footer">Thank you</p>
-          </article>
-
-            <hr class="screen-only-break" />
-
-          <article class="receipt receipt-copy">
-            <div class="receipt-copy-label">Restaurant Copy</div>
-            <header class="receipt-header">
-              <h1>{{ inv.restaurant.name }}</h1>
-              <p>Kitchen / Accounts</p>
-            </header>
-            <hr class="receipt-divider" />
-            <div class="receipt-meta">
-              <div><span>Order</span><span>{{ inv.orderNo }}</span></div>
-              <div><span>Date</span><span>{{ inv.createdAt | date: 'yyyy-MM-dd HH:mm' }}</span></div>
-              <div><span>Type</span><span>{{ orderTypeLabel(inv.orderType) }}</span></div>
-              <div><span>Pay</span><span>{{ paymentTypeLabel(inv.paymentType) }}</span></div>
-            </div>
-            <hr class="receipt-divider" />
-            <div class="receipt-items">
-              @for (item of inv.items; track $index) {
-                <div class="receipt-line">
-                  <span class="receipt-item-name">{{ item.name }}</span>
-                  <span>x {{ item.quantity }}</span>
-                </div>
-              }
-            </div>
-            @if (inv.remarks) {
+          @if (receiptCopy() === 'customer' || receiptCopy() === 'both') {
+            <article class="receipt receipt-copy">
+              <div class="receipt-copy-label">Customer Copy</div>
+              <header class="receipt-header">
+                <h1>{{ inv.restaurant.name }}</h1>
+                @if (inv.restaurant.address) {
+                  <p>{{ inv.restaurant.address }}</p>
+                }
+                @if (inv.restaurant.city || inv.restaurant.country) {
+                  <p>{{ inv.restaurant.city }}{{ inv.restaurant.city && inv.restaurant.country ? ', ' : '' }}{{ inv.restaurant.country }}</p>
+                }
+                @if (inv.restaurant.phone) {
+                  <p>Tel: {{ inv.restaurant.phone }}</p>
+                }
+              </header>
               <hr class="receipt-divider" />
-              <p class="receipt-footer">Notes: {{ inv.remarks }}</p>
-            }
-          </article>
+              <div class="receipt-meta">
+                <div><span>Order</span><span>{{ inv.orderNo }}</span></div>
+                <div><span>Date</span><span>{{ inv.createdAt | date: 'yyyy-MM-dd HH:mm' }}</span></div>
+                <div><span>Type</span><span>{{ orderTypeLabel(inv.orderType) }}</span></div>
+                <div><span>Pay</span><span>{{ paymentTypeLabel(inv.paymentType) }}</span></div>
+              </div>
+              <hr class="receipt-divider" />
+              <div class="receipt-items">
+                @for (item of inv.items; track $index) {
+                  <div>
+                    <div class="receipt-item-name">{{ item.name }}</div>
+                    <div class="receipt-line">
+                      <span>{{ item.quantity }} x {{ item.unitPrice | number: '1.0-2' }}</span>
+                      <span>{{ item.total | number: '1.0-2' }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+              <hr class="receipt-divider" />
+              <div class="receipt-totals">
+                <div><span>Subtotal</span><span>{{ inv.subtotal | number: '1.0-2' }}</span></div>
+                <div><span>Discount</span><span>{{ inv.discount | number: '1.0-2' }}</span></div>
+                @if (inv.deliveryCharges > 0) {
+                  <div><span>Delivery</span><span>{{ inv.deliveryCharges | number: '1.0-2' }}</span></div>
+                }
+                <div class="grand-row"><span>TOTAL ({{ inv.currency }})</span><span>{{ inv.grandTotal | number: '1.0-2' }}</span></div>
+              </div>
+              @if (inv.remarks) {
+                <p class="receipt-footer">{{ inv.remarks }}</p>
+              }
+              <hr class="receipt-divider" />
+              <div class="receipt-brand-footer">
+                <p>Thank you for visiting us, please visit again.</p>
+                <p>
+                  Designed and Developed By:
+                  <a href="https://www.codebasesln.com" target="_blank" rel="noopener noreferrer">CodeBase Solutions</a>
+                </p>
+                <p>03206632665</p>
+              </div>
+            </article>
+          }
+
+          @if (receiptCopy() === 'both') {
+            <hr class="screen-only-break no-print" />
+          }
+
+          @if (receiptCopy() === 'restaurant' || receiptCopy() === 'both') {
+            <article class="receipt receipt-copy" [class.receipt-page-break]="receiptCopy() === 'both'">
+              <div class="receipt-copy-label">Restaurant Copy</div>
+              <header class="receipt-header">
+                <h1>{{ inv.restaurant.name }}</h1>
+                <p>Kitchen / Accounts</p>
+              </header>
+              <hr class="receipt-divider" />
+              <div class="receipt-meta">
+                <div><span>Order</span><span>{{ inv.orderNo }}</span></div>
+                <div><span>Date</span><span>{{ inv.createdAt | date: 'yyyy-MM-dd HH:mm' }}</span></div>
+                <div><span>Type</span><span>{{ orderTypeLabel(inv.orderType) }}</span></div>
+                <div><span>Pay</span><span>{{ paymentTypeLabel(inv.paymentType) }}</span></div>
+              </div>
+              <hr class="receipt-divider" />
+              <div class="receipt-items">
+                @for (item of inv.items; track $index) {
+                  <div class="receipt-line">
+                    <span class="receipt-item-name">{{ item.name }}</span>
+                    <span>x {{ item.quantity }}</span>
+                  </div>
+                }
+              </div>
+              @if (inv.remarks) {
+                <hr class="receipt-divider" />
+                <p class="receipt-footer">Notes: {{ inv.remarks }}</p>
+              }
+            </article>
+          }
         </div>
       </div>
     </div>

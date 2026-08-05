@@ -245,6 +245,10 @@ export class ApiService {
     return this.http.post<OrderDto>(`${environment.apiUrl}/orders`, body);
   }
 
+  updateOrder(id: string, body: CreateOrderRequest): Observable<OrderDto> {
+    return this.http.put<OrderDto>(`${environment.apiUrl}/orders/${id}`, body);
+  }
+
   getOrders(take = 50, orderType?: OrderType | null, orderStatus?: OrderStatus | null): Observable<OrderSummaryDto[]> {
     let params = new HttpParams().set('take', String(take));
     if (orderType != null) {
