@@ -1,0 +1,90 @@
+<section class="panel">
+  <div class="header">
+    <div>
+      <h1>Attendance Report</h1>
+      <p class="muted">
+        Month / date-range attendance for all employees or one employee. Day marking stays on Attendance.
+      </p>
+    </div>
+  </div>
+
+  <form class="filters" [formGroup]="filters" (ngSubmit)="apply()">
+    <mat-form-field appearance="outline">
+      <mat-label>From</mat-label>
+      <input matInput type="date" formControlName="from" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>To</mat-label>
+      <input matInput type="date" formControlName="to" />
+    </mat-form-field>
+    <app-employee-typeahead label="Employee (optional)" (employeeIdChange)="onEmployeeChange($event)" />
+    <button mat-flat-button color="primary" type="submit" [disabled]="loading()">Apply</button>
+  </form>
+
+  <div class="kpi-grid">
+    <div class="kpi">
+      <span>Present</span>
+      <strong>{{ report()?.totalPresent ?? 0 }}</strong>
+    </div>
+    <div class="kpi">
+      <span>Half Day</span>
+      <strong>{{ report()?.totalHalfDay ?? 0 }}</strong>
+    </div>
+    <div class="kpi">
+      <span>Absent</span>
+      <strong>{{ report()?.totalAbsent ?? 0 }}</strong>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="matrix">
+      <thead>
+        <tr>
+          <th class="sticky-col">Employee</th>
+          <th>P</th>
+          <th>H</th>
+          <th>A</th>
+          @for (date of dates(); track date) {
+            <th>{{ date | date: 'dd' }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of employees(); track row.employeeId) {
+          <tr>
+            <td class="sticky-col">{{ row.employeeName }}</td>
+            <td>{{ row.presentCount }}</td>
+            <td>{{ row.halfDayCount }}</td>
+            <td>{{ row.absentCount }}</td>
+            @for (date of dates(); track date) {
+              <td [class]="statusClass(dayStatus(row, date))">
+                {{ statusLabel(dayStatus(row, date)) }}
+              </td>
+            }
+          </tr>
+        } @empty {
+          <tr>
+            <td [attr.colspan]="4 + dates().length" class="muted">
+              {{ loading() ? 'Loading...' : 'No employees in this view.' }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pager">
+    <span class="muted">{{ totalCount() }} employees · page {{ page() }} / {{ totalPages() || 1 }}</span>
+    <span class="spacer"></span>
+    <button mat-stroked-button type="button" [disabled]="page() <= 1 || loading()" (click)="prevPage()">
+      Previous
+    </button>
+    <button
+      mat-stroked-button
+      type="button"
+      [disabled]="totalPages() === 0 || page() >= totalPages() || loading()"
+      (click)="nextPage()">
+      Next
+    </button>
+  </div>
+</section>

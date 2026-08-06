@@ -147,6 +147,15 @@ export const routes: Routes = [
         data: { permissions: ['Reports.View'] }
       },
       {
+        path: 'reports/attendance',
+        loadComponent: () =>
+          import('./features/attendance-reports/attendance-reports.component').then(
+            m => m.AttendanceReportsComponent
+          ),
+        canActivate: [permissionGuard],
+        data: { permissions: ['Reports.View'] }
+      },
+      {
         path: 'restaurants',
         component: RestaurantsComponent,
         canActivate: [platformTenantGuard]

@@ -1,0 +1,19 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.employee-typeahead {
+  min-width: 220px;
+}
+
+.hint {
+  color: #98a2b3;
+  font-size: 0.85em;
+}
+
+.clear-btn {
+  margin-top: -0.5rem;
+}

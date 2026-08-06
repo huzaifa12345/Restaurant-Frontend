@@ -677,6 +677,7 @@ export interface WageReportEmployeeDto {
   paidDaily: number;
   paidSalary: number;
   paidTotal: number;
+  /** Pending daily earnings (earned − paid daily). */
   balance: number;
 }
 
@@ -684,11 +685,45 @@ export interface WageReportDto {
   from: string;
   to: string;
   useBusinessDay: boolean;
+  employeeId?: string | null;
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
   totalEarned: number;
   totalPaidDaily: number;
   totalPaidSalary: number;
   totalPaid: number;
   totalBalance: number;
   employees: WageReportEmployeeDto[];
+}
+
+export interface AttendanceReportDayCellDto {
+  workDate: string;
+  status?: AttendanceStatus | null;
+}
+
+export interface AttendanceReportEmployeeRowDto {
+  employeeId: string;
+  employeeName: string;
+  presentCount: number;
+  halfDayCount: number;
+  absentCount: number;
+  days: AttendanceReportDayCellDto[];
+}
+
+export interface AttendanceReportDto {
+  from: string;
+  to: string;
+  employeeId?: string | null;
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+  totalPresent: number;
+  totalHalfDay: number;
+  totalAbsent: number;
+  dates: string[];
+  employees: AttendanceReportEmployeeRowDto[];
 }
 

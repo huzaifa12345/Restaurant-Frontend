@@ -1,0 +1,24 @@
+<mat-form-field appearance="outline" class="employee-typeahead">
+  <mat-label>{{ label() }}</mat-label>
+  <input
+    matInput
+    [formControl]="searchControl"
+    [matAutocomplete]="auto"
+    (blur)="onBlur()"
+    placeholder="Search employee..." />
+  <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn" (optionSelected)="onOptionSelected($event)">
+    @for (employee of options(); track employee.id) {
+      <mat-option [value]="employee">
+        {{ employee.name }}
+        @if (employee.designation) {
+          <span class="hint"> · {{ employee.designation }}</span>
+        }
+      </mat-option>
+    } @empty {
+      <mat-option disabled>{{ loading() ? 'Searching...' : 'No employees found' }}</mat-option>
+    }
+  </mat-autocomplete>
+</mat-form-field>
+@if (selectedId()) {
+  <button mat-button type="button" class="clear-btn" (click)="clear()">Clear</button>
+}

@@ -95,6 +95,7 @@
                   <a mat-list-item routerLink="/app/employee-payments" routerLinkActive="active">Payments</a>
                 }
                 @if (canViewReports()) {
+                  <a mat-list-item routerLink="/app/reports/attendance" routerLinkActive="active">Attendance Report</a>
                   <a mat-list-item routerLink="/app/reports/wages" routerLinkActive="active">Wage Report</a>
                 }
                 @if (canManageUsers()) {
