@@ -2,11 +2,14 @@
   <div class="header">
     <div>
       <h1>Wage Reports</h1>
-      <p class="muted">Attendance earnings vs payments for the selected period.</p>
+      <p class="muted">
+        Total wages earned vs paid for all employees or one employee. Pending = earned daily wages minus daily
+        payments.
+      </p>
     </div>
   </div>
 
-  <form class="filters" [formGroup]="filters" (ngSubmit)="load()">
+  <form class="filters" [formGroup]="filters" (ngSubmit)="apply()">
     <mat-form-field appearance="outline">
       <mat-label>From</mat-label>
       <input matInput type="date" formControlName="from" />
@@ -15,6 +18,7 @@
       <mat-label>To</mat-label>
       <input matInput type="date" formControlName="to" />
     </mat-form-field>
+    <app-employee-typeahead label="Employee (optional)" (employeeIdChange)="onEmployeeChange($event)" />
     <mat-checkbox formControlName="useBusinessDay">Business day</mat-checkbox>
     <button mat-flat-button color="primary" type="submit" [disabled]="loading()">Apply</button>
     <button mat-stroked-button type="button" (click)="export('xlsx')">Excel</button>
@@ -31,7 +35,7 @@
       <strong>{{ (report()?.totalPaid ?? 0) | number: '1.2-2' }}</strong>
     </div>
     <div class="kpi">
-      <span>Balance</span>
+      <span>Pending</span>
       <strong>{{ (report()?.totalBalance ?? 0) | number: '1.2-2' }}</strong>
     </div>
   </div>
@@ -67,12 +71,27 @@
       <td mat-cell *matCellDef="let row">{{ row.paidTotal | number: '1.2-2' }}</td>
     </ng-container>
 
-    <ng-container matColumnDef="balance">
-      <th mat-header-cell *matHeaderCellDef>Balance</th>
+    <ng-container matColumnDef="pending">
+      <th mat-header-cell *matHeaderCellDef>Pending</th>
       <td mat-cell *matCellDef="let row">{{ row.balance | number: '1.2-2' }}</td>
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
   </table>
+
+  <div class="pager">
+    <span class="muted">{{ totalCount() }} employees · page {{ page() }} / {{ totalPages() || 1 }}</span>
+    <span class="spacer"></span>
+    <button mat-stroked-button type="button" [disabled]="page() <= 1 || loading()" (click)="prevPage()">
+      Previous
+    </button>
+    <button
+      mat-stroked-button
+      type="button"
+      [disabled]="totalPages() === 0 || page() >= totalPages() || loading()"
+      (click)="nextPage()">
+      Next
+    </button>
+  </div>
 </section>

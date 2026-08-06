@@ -54,6 +54,17 @@
   width: 100%;
 }
 
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.spacer {
+  flex: 1;
+}
+
 @media (max-width: 800px) {
   .table {
     display: block;

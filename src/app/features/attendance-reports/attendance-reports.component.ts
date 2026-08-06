@@ -1,61 +1,56 @@
-import { DecimalPipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTableModule } from '@angular/material/table';
-import { WageReportDto, WageReportEmployeeDto } from '../../core/models/api.models';
+import {
+  AttendanceReportDto,
+  AttendanceReportEmployeeRowDto,
+  AttendanceStatus
+} from '../../core/models/api.models';
 import { ApiService } from '../../core/services/api.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { EmployeeTypeaheadComponent } from '../../shared/components/employee-typeahead/employee-typeahead.component';
 
 @Component({
-  selector: 'app-wage-reports',
+  selector: 'app-attendance-reports',
   standalone: true,
   imports: [
-    DecimalPipe,
+    DatePipe,
     ReactiveFormsModule,
     MatTableModule,
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatCheckboxModule,
     EmployeeTypeaheadComponent
   ],
-  templateUrl: './wage-reports.component.html',
-  styleUrl: './wage-reports.component.scss'
+  templateUrl: './attendance-reports.component.html',
+  styleUrl: './attendance-reports.component.scss'
 })
-export class WageReportsComponent implements OnInit {
+export class AttendanceReportsComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(ApiService);
   private readonly notification = inject(NotificationService);
 
-  readonly report = signal<WageReportDto | null>(null);
+  readonly AttendanceStatus = AttendanceStatus;
+  readonly report = signal<AttendanceReportDto | null>(null);
   readonly loading = signal(false);
   readonly employeeId = signal<string | null>(null);
   readonly page = signal(1);
-  readonly pageSize = 50;
+  readonly pageSize = 20;
 
-  readonly employees = computed(() => this.report()?.employees ?? ([] as WageReportEmployeeDto[]));
+  readonly employees = computed(
+    () => this.report()?.employees ?? ([] as AttendanceReportEmployeeRowDto[])
+  );
+  readonly dates = computed(() => this.report()?.dates ?? []);
   readonly totalPages = computed(() => this.report()?.totalPages ?? 0);
   readonly totalCount = computed(() => this.report()?.totalCount ?? 0);
 
-  readonly displayedColumns = [
-    'employee',
-    'present',
-    'halfDay',
-    'absent',
-    'earned',
-    'paid',
-    'pending'
-  ];
-
   readonly filters = this.fb.nonNullable.group({
     from: [this.monthStart(), Validators.required],
-    to: [this.today(), Validators.required],
-    useBusinessDay: [false]
+    to: [this.today(), Validators.required]
   });
 
   ngOnInit(): void {
@@ -68,21 +63,22 @@ export class WageReportsComponent implements OnInit {
     this.load();
   }
 
-  apply(): void {
-    this.page.set(1);
-    this.load();
-  }
-
   load(): void {
     if (this.filters.invalid) {
       this.filters.markAllAsTouched();
       return;
     }
 
-    const { from, to, useBusinessDay } = this.filters.getRawValue();
+    const { from, to } = this.filters.getRawValue();
     this.loading.set(true);
     this.api
-      .getWageReport(from, to, useBusinessDay, this.employeeId(), this.page(), this.pageSize)
+      .getAttendanceReport({
+        from,
+        to,
+        employeeId: this.employeeId(),
+        page: this.page(),
+        pageSize: this.pageSize
+      })
       .subscribe({
         next: report => {
           this.report.set(report);
@@ -90,18 +86,14 @@ export class WageReportsComponent implements OnInit {
         },
         error: (err: { error?: { detail?: string } }) => {
           this.loading.set(false);
-          this.notification.error(err?.error?.detail ?? 'Failed to load wage report.');
+          this.notification.error(err?.error?.detail ?? 'Failed to load attendance report.');
         }
       });
   }
 
-  export(format: 'xlsx' | 'pdf'): void {
-    if (this.filters.invalid) {
-      this.filters.markAllAsTouched();
-      return;
-    }
-    const { from, to, useBusinessDay } = this.filters.getRawValue();
-    this.api.downloadWageReportExport(format, from, to, useBusinessDay, this.employeeId());
+  apply(): void {
+    this.page.set(1);
+    this.load();
   }
 
   prevPage(): void {
@@ -118,6 +110,45 @@ export class WageReportsComponent implements OnInit {
     }
     this.page.update(p => p + 1);
     this.load();
+  }
+
+  statusLabel(status: AttendanceStatus | null | undefined): string {
+    if (status == null) {
+      return '—';
+    }
+    switch (status) {
+      case AttendanceStatus.Present:
+        return 'P';
+      case AttendanceStatus.Absent:
+        return 'A';
+      case AttendanceStatus.HalfDay:
+        return 'H';
+      default:
+        return '—';
+    }
+  }
+
+  statusClass(status: AttendanceStatus | null | undefined): string {
+    if (status == null) {
+      return 'cell-empty';
+    }
+    switch (status) {
+      case AttendanceStatus.Present:
+        return 'cell-present';
+      case AttendanceStatus.Absent:
+        return 'cell-absent';
+      case AttendanceStatus.HalfDay:
+        return 'cell-half';
+      default:
+        return 'cell-empty';
+    }
+  }
+
+  dayStatus(
+    row: AttendanceReportEmployeeRowDto,
+    date: string
+  ): AttendanceStatus | null | undefined {
+    return row.days.find(d => d.workDate === date)?.status;
   }
 
   private monthStart(): string {

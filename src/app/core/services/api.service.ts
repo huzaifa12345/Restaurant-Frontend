@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   AttendanceDayDto,
+  AttendanceReportDto,
   CategoryDto,
   CategoryRequest,
   CreateOrderRequest,
@@ -759,11 +760,41 @@ export class ApiService {
     return this.http.get<ExpenseReportDto>(`${environment.apiUrl}/reports/expenses`, { params });
   }
 
-  getWageReport(from: string, to: string, useBusinessDay = false): Observable<WageReportDto> {
-    const params = new HttpParams()
+  getAttendanceReport(query: {
+    from: string;
+    to: string;
+    employeeId?: string | null;
+    page?: number;
+    pageSize?: number;
+  }): Observable<AttendanceReportDto> {
+    let params = new HttpParams()
+      .set('from', query.from)
+      .set('to', query.to)
+      .set('page', String(query.page ?? 1))
+      .set('pageSize', String(query.pageSize ?? 20));
+    if (query.employeeId) {
+      params = params.set('employeeId', query.employeeId);
+    }
+    return this.http.get<AttendanceReportDto>(`${environment.apiUrl}/reports/attendance`, { params });
+  }
+
+  getWageReport(
+    from: string,
+    to: string,
+    useBusinessDay = false,
+    employeeId?: string | null,
+    page = 1,
+    pageSize = 50
+  ): Observable<WageReportDto> {
+    let params = new HttpParams()
       .set('from', from)
       .set('to', to)
-      .set('useBusinessDay', String(useBusinessDay));
+      .set('useBusinessDay', String(useBusinessDay))
+      .set('page', String(page))
+      .set('pageSize', String(pageSize));
+    if (employeeId) {
+      params = params.set('employeeId', employeeId);
+    }
     return this.http.get<WageReportDto>(`${environment.apiUrl}/reports/wages`, { params });
   }
 
@@ -789,12 +820,21 @@ export class ApiService {
     );
   }
 
-  downloadWageReportExport(format: 'xlsx' | 'pdf', from: string, to: string, useBusinessDay = false): void {
-    const params = new HttpParams()
+  downloadWageReportExport(
+    format: 'xlsx' | 'pdf',
+    from: string,
+    to: string,
+    useBusinessDay = false,
+    employeeId?: string | null
+  ): void {
+    let params = new HttpParams()
       .set('from', from)
       .set('to', to)
       .set('format', format)
       .set('useBusinessDay', String(useBusinessDay));
+    if (employeeId) {
+      params = params.set('employeeId', employeeId);
+    }
     this.downloadBlob(
       `${environment.apiUrl}/reports/wages/export`,
       params,
