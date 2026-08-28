@@ -7,7 +7,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import {
+  CategoryDto,
   CreateOrderRequest,
+  MenuItemDto,
   OrderDto,
   OrderType,
   PaymentStatus,
@@ -23,6 +25,7 @@ export interface EditOrderDialogData {
 interface EditLine {
   menuItemId: string;
   name: string;
+  image?: string | null;
   unitPrice: number;
   quantity: number;
 }
@@ -52,9 +55,13 @@ export class EditOrderDialogComponent implements OnInit {
   readonly PaymentType = PaymentType;
 
   readonly loading = signal(true);
+  readonly menuLoading = signal(false);
   readonly saving = signal(false);
   readonly error = signal<string | null>(null);
   readonly lines = signal<EditLine[]>([]);
+  readonly categories = signal<CategoryDto[]>([]);
+  readonly items = signal<MenuItemDto[]>([]);
+  readonly selectedCategoryId = signal<string>('');
   readonly billing = signal({
     orderType: OrderType.DineIn,
     discount: 0,
@@ -90,12 +97,19 @@ export class EditOrderDialogComponent implements OnInit {
     });
     this.form.controls.deliveryCharges.disable({ emitEvent: false });
 
+    this.api.getCategories({ activeOnly: true, page: 1, pageSize: 100 }).subscribe({
+      next: result => this.categories.set(result.items),
+      error: () => this.categories.set([])
+    });
+    this.loadItems();
+
     this.api.getOrder(this.data.orderId).subscribe({
       next: (order: OrderDto) => {
         this.lines.set(
           order.items.map(i => ({
             menuItemId: i.menuItemId,
             name: i.menuItemName,
+            image: i.menuItemImage,
             unitPrice: i.unitPrice,
             quantity: i.quantity
           }))
@@ -115,6 +129,51 @@ export class EditOrderDialogComponent implements OnInit {
         this.loading.set(false);
         this.error.set(err?.error?.detail ?? 'Failed to load order.');
       }
+    });
+  }
+
+  selectCategory(categoryId: string): void {
+    this.selectedCategoryId.set(categoryId);
+    this.loadItems();
+  }
+
+  loadItems(): void {
+    this.menuLoading.set(true);
+    const categoryId = this.selectedCategoryId() || null;
+    this.api.getPosMenuItems(categoryId).subscribe({
+      next: menuItems => {
+        this.items.set(menuItems);
+        this.menuLoading.set(false);
+      },
+      error: () => {
+        this.items.set([]);
+        this.menuLoading.set(false);
+      }
+    });
+  }
+
+  mediaUrl(path?: string | null): string | null {
+    return this.api.resolveMediaUrl(path);
+  }
+
+  addItem(item: MenuItemDto): void {
+    this.lines.update(list => {
+      const existing = list.find(l => l.menuItemId === item.id);
+      if (existing) {
+        return list.map(l =>
+          l.menuItemId === item.id ? { ...l, quantity: l.quantity + 1 } : l
+        );
+      }
+      return [
+        ...list,
+        {
+          menuItemId: item.id,
+          name: item.name,
+          image: item.image,
+          unitPrice: item.price,
+          quantity: 1
+        }
+      ];
     });
   }
 

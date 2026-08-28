@@ -354,8 +354,10 @@ export class PosComponent implements OnInit {
 
     this.dialog
       .open(EditOrderDialogComponent, {
-        width: '560px',
-        maxWidth: '95vw',
+        width: 'min(1120px, 96vw)',
+        maxWidth: '96vw',
+        maxHeight: '92vh',
+        panelClass: 'edit-order-dialog-panel',
         data: { orderId: order.id, orderNo: order.orderNo }
       })
       .afterClosed()

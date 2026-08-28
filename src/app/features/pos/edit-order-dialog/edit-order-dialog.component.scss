@@ -1,22 +1,183 @@
 .edit-order-dialog {
-  min-width: min(520px, 92vw);
-  max-height: 70vh;
+  min-width: min(1080px, 94vw);
+  height: min(78vh, 760px);
+  max-height: 78vh;
+  overflow: hidden;
+  padding-top: 0.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.edit-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: 1rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.add-items,
+.order-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.add-items h3,
+.order-panel h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.hint {
+  margin: 0 0 0.65rem;
+  font-size: 0.85rem;
+}
+
+.category-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.65rem;
+}
+
+.chip {
+  border: 1px solid #d0d5dd;
+  background: #fff;
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.chip.active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #fff;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 0.65rem;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  align-content: start;
+  padding-right: 0.25rem;
+}
+
+.item-card {
+  border: 1px solid #e5eaf2;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fafbfd;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+  font: inherit;
+  display: flex;
+  flex-direction: column;
+  min-height: 180px;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+}
+
+.item-card:hover,
+.item-card:active {
+  border-color: var(--color-accent);
+  transform: translateY(-1px);
+}
+
+.item-image {
+  height: 110px;
+  flex: 0 0 110px;
+  background: #eef2f7;
+}
+
+.item-image img,
+.placeholder {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.placeholder {
+  display: grid;
+  place-items: center;
+  color: #98a2b3;
+  font-size: 0.8rem;
+}
+
+.item-meta {
+  padding: 0.55rem 0.6rem 0.65rem;
+  display: grid;
+  gap: 0.2rem;
+  flex: 1;
+}
+
+.item-meta .name {
+  font-weight: 600;
+  font-size: 0.88rem;
+  line-height: 1.25;
+}
+
+.item-meta .price {
+  color: var(--color-accent);
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.order-panel {
+  border-left: 1px solid #e5eaf2;
+  padding-left: 1rem;
 }
 
 .edit-lines {
   display: grid;
   gap: 0.55rem;
   margin-bottom: 0.65rem;
-  max-height: 240px;
+  flex: 1;
+  min-height: 0;
   overflow: auto;
+  align-content: start;
 }
 
 .edit-line {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 0.2rem 0.5rem;
+  grid-template-columns: 44px 1fr auto;
+  gap: 0.45rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid #eef2f7;
+  align-items: start;
+}
+
+.line-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #eef2f7;
+  flex-shrink: 0;
+}
+
+.line-thumb img,
+.line-thumb .placeholder {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.line-thumb .placeholder {
+  display: grid;
+  place-items: center;
+  color: #98a2b3;
+  font-size: 0.75rem;
+}
+
+.line-body {
+  min-width: 0;
 }
 
 .line-info {
@@ -30,10 +191,10 @@
 }
 
 .line-actions {
-  grid-column: 1 / -1;
   display: flex;
   align-items: center;
   gap: 0.35rem;
+  margin-top: 0.35rem;
 }
 
 .qty-btn,
@@ -65,7 +226,7 @@
 
 .line-total {
   font-weight: 600;
-  align-self: start;
+  white-space: nowrap;
 }
 
 .edit-form {
@@ -74,6 +235,7 @@
   gap: 6px 0.45rem;
   border-top: 1px solid #e5eaf2;
   padding-top: 0.45rem;
+  flex-shrink: 0;
 }
 
 .edit-form .full,
@@ -99,10 +261,6 @@
   padding-bottom: 8px !important;
 }
 
-.edit-form ::ng-deep .mdc-notched-outline__notch {
-  max-width: 100%;
-}
-
 .totals {
   display: grid;
   gap: 0.2rem;
@@ -122,4 +280,38 @@
 .error {
   color: #b42318;
   margin: 0 0 0.5rem;
+}
+
+@media (max-width: 900px) {
+  .edit-order-dialog {
+    min-width: min(560px, 94vw);
+  }
+
+  .edit-layout {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .order-panel {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid #e5eaf2;
+    padding-top: 1rem;
+  }
+
+  .edit-order-dialog {
+    height: auto;
+    max-height: 78vh;
+    overflow: auto;
+  }
+
+  .cards {
+    min-height: 240px;
+    max-height: 320px;
+  }
+
+  .edit-lines {
+    flex: none;
+    max-height: 280px;
+  }
 }
