@@ -8,65 +8,124 @@
       <p class="error">{{ err }}</p>
     }
 
-    <div class="edit-lines">
-      @for (line of lines(); track line.menuItemId) {
-        <div class="edit-line">
-          <div class="line-info">
-            <strong>{{ line.name }}</strong>
-            <span>{{ line.unitPrice | number: '1.0-2' }} × {{ line.quantity }}</span>
-          </div>
-          <div class="line-actions">
-            <button type="button" class="qty-btn" (click)="decrease(line.menuItemId)">−</button>
-            <span class="qty">{{ line.quantity }}</span>
-            <button type="button" class="qty-btn" (click)="increase(line.menuItemId)">+</button>
-            <button type="button" class="remove" (click)="remove(line.menuItemId)">Remove</button>
-          </div>
-          <div class="line-total">{{ line.unitPrice * line.quantity | number: '1.0-2' }}</div>
+    <div class="edit-layout">
+      <section class="add-items">
+        <h3>Add items</h3>
+        <p class="hint muted">Tap an item to add it to this order.</p>
+
+        <div class="category-bar">
+          <button
+            type="button"
+            class="chip"
+            [class.active]="!selectedCategoryId()"
+            (click)="selectCategory('')">
+            All
+          </button>
+          @for (category of categories(); track category.id) {
+            <button
+              type="button"
+              class="chip"
+              [class.active]="selectedCategoryId() === category.id"
+              (click)="selectCategory(category.id)">
+              {{ category.name }}
+            </button>
+          }
         </div>
-      } @empty {
-        <p class="muted">No items left. Add quantity back or cancel.</p>
-      }
+
+        <div class="cards">
+          @for (item of items(); track item.id) {
+            <button type="button" class="item-card" (click)="addItem(item)">
+              <div class="item-image">
+                @if (mediaUrl(item.image); as src) {
+                  <img [src]="src" [alt]="item.name" />
+                } @else {
+                  <div class="placeholder">No image</div>
+                }
+              </div>
+              <div class="item-meta">
+                <span class="name">{{ item.name }}</span>
+                <span class="price">{{ item.price | number: '1.0-2' }}</span>
+              </div>
+            </button>
+          } @empty {
+            <p class="muted">{{ menuLoading() ? 'Loading menu...' : 'No active menu items.' }}</p>
+          }
+        </div>
+      </section>
+
+      <section class="order-panel">
+        <h3>Order items</h3>
+
+        <div class="edit-lines">
+          @for (line of lines(); track line.menuItemId) {
+            <div class="edit-line">
+              <div class="line-thumb">
+                @if (mediaUrl(line.image); as src) {
+                  <img [src]="src" [alt]="line.name" />
+                } @else {
+                  <div class="placeholder">—</div>
+                }
+              </div>
+              <div class="line-body">
+                <div class="line-info">
+                  <strong>{{ line.name }}</strong>
+                  <span>{{ line.unitPrice | number: '1.0-2' }} × {{ line.quantity }}</span>
+                </div>
+                <div class="line-actions">
+                  <button type="button" class="qty-btn" (click)="decrease(line.menuItemId)">−</button>
+                  <span class="qty">{{ line.quantity }}</span>
+                  <button type="button" class="qty-btn" (click)="increase(line.menuItemId)">+</button>
+                  <button type="button" class="remove" (click)="remove(line.menuItemId)">Remove</button>
+                </div>
+              </div>
+              <div class="line-total">{{ line.unitPrice * line.quantity | number: '1.0-2' }}</div>
+            </div>
+          } @empty {
+            <p class="muted">No items yet. Add from the menu on the left.</p>
+          }
+        </div>
+
+        <form [formGroup]="form" class="edit-form" (ngSubmit)="save()">
+          <mat-form-field appearance="outline">
+            <mat-label>Order Type</mat-label>
+            <mat-select formControlName="orderType">
+              <mat-option [value]="OrderType.DineIn">Dine In</mat-option>
+              <mat-option [value]="OrderType.Takeaway">Takeaway</mat-option>
+              <mat-option [value]="OrderType.Delivery">Delivery</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Payment</mat-label>
+            <mat-select formControlName="paymentType">
+              <mat-option [value]="PaymentType.Cash">Cash</mat-option>
+              <mat-option [value]="PaymentType.Card">Card</mat-option>
+              <mat-option [value]="PaymentType.Online">Online</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Discount</mat-label>
+            <input matInput type="number" formControlName="discount" min="0" step="0.01" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Delivery Charges</mat-label>
+            <input matInput type="number" formControlName="deliveryCharges" min="0" step="0.01" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>Remarks</mat-label>
+            <input matInput formControlName="remarks" />
+          </mat-form-field>
+
+          <div class="totals">
+            <div><span>Subtotal</span><strong>{{ subtotal() | number: '1.0-2' }}</strong></div>
+            <div><span>Grand Total</span><strong>{{ grandTotal() | number: '1.0-2' }}</strong></div>
+          </div>
+        </form>
+      </section>
     </div>
-
-    <form [formGroup]="form" class="edit-form" (ngSubmit)="save()">
-      <mat-form-field appearance="outline">
-        <mat-label>Order Type</mat-label>
-        <mat-select formControlName="orderType">
-          <mat-option [value]="OrderType.DineIn">Dine In</mat-option>
-          <mat-option [value]="OrderType.Takeaway">Takeaway</mat-option>
-          <mat-option [value]="OrderType.Delivery">Delivery</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Payment</mat-label>
-        <mat-select formControlName="paymentType">
-          <mat-option [value]="PaymentType.Cash">Cash</mat-option>
-          <mat-option [value]="PaymentType.Card">Card</mat-option>
-          <mat-option [value]="PaymentType.Online">Online</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Discount</mat-label>
-        <input matInput type="number" formControlName="discount" min="0" step="0.01" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Delivery Charges</mat-label>
-        <input matInput type="number" formControlName="deliveryCharges" min="0" step="0.01" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full">
-        <mat-label>Remarks</mat-label>
-        <input matInput formControlName="remarks" />
-      </mat-form-field>
-
-      <div class="totals">
-        <div><span>Subtotal</span><strong>{{ subtotal() | number: '1.0-2' }}</strong></div>
-        <div><span>Grand Total</span><strong>{{ grandTotal() | number: '1.0-2' }}</strong></div>
-      </div>
-    </form>
   }
 </mat-dialog-content>
 
